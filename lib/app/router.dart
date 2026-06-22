@@ -2,9 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/screens/splash_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
-import '../features/auth/screens/phone_entry_screen.dart';
-import '../features/auth/screens/otp_verify_screen.dart';
-import '../features/auth/screens/profile_setup_screen.dart';
+import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/role_choice_screen.dart';
 import '../features/auth/screens/create_team_screen.dart';
 import '../features/auth/screens/join_team_screen.dart';
@@ -35,17 +33,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           name: 'welcome',
           builder: (c, s) => const WelcomeScreen()),
       GoRoute(
-          path: '/phone',
-          name: 'phone',
-          builder: (c, s) => const PhoneEntryScreen()),
-      GoRoute(
-          path: '/otp',
-          name: 'otp',
-          builder: (c, s) => OtpVerifyScreen(phone: s.extra as String)),
-      GoRoute(
-          path: '/profile-setup',
-          name: 'profile-setup',
-          builder: (c, s) => const ProfileSetupScreen()),
+          path: '/register',
+          name: 'register',
+          builder: (c, s) => const RegisterScreen()),
       GoRoute(
           path: '/role-choice',
           name: 'role-choice',

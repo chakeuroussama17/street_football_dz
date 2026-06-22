@@ -63,57 +63,44 @@ class AppUser {
   }
 }
 
-/// Result of verifying an OTP: whether this phone is brand new (needs profile
-/// setup) and, if not, the existing profile.
-class VerifyResult {
-  final bool isNew;
-  final AppUser? profile;
-  VerifyResult(this.isNew, this.profile);
-}
-
 class AuthService {
   static final _sb = SupabaseService.supabase;
 
-  /// Sends a 6-digit OTP by SMS to [phone] (E.164, e.g. +213…). For new numbers
-  /// Supabase creates the auth user on verify (shouldCreateUser defaults true).
-  static Future<void> sendOtp(String phone) async {
+  // ── Testing-mode auth (NO verification) ──────────────────────────────────────
+  // The phone number is the account identity. We sign the user in/up with a
+  // deterministic email + password derived from the phone, with Supabase email
+  // confirmation turned OFF — so there's no OTP, no SMS, no verification step.
+  // (Not secure: anyone who knows a phone can sign in. Fine for testing; swap
+  // back to real OTP before launch.)
+
+  static String _emailFor(String phoneE164) =>
+      '${phoneE164.replaceAll(RegExp(r'\D'), '')}@sfdz.app';
+
+  static String _passwordFor(String phoneE164) =>
+      'sfdz-${phoneE164.replaceAll(RegExp(r'\D'), '')}';
+
+  /// Signs the phone in, creating the account on first use. No verification.
+  static Future<void> authByPhone(String phoneE164) async {
+    final email = _emailFor(phoneE164);
+    final pw = _passwordFor(phoneE164);
     try {
-      await _sb.auth.signInWithOtp(phone: phone);
-    } on AuthException catch (e) {
-      throw AuthFailure(friendly(e.message));
-    } catch (e) {
-      throw AuthFailure(friendly(e.toString()));
-    }
-  }
-
-  /// Verifies the SMS [token] for [phone]. Returns whether the user is new
-  /// (no public.users row yet → continue to profile setup).
-  static Future<VerifyResult> verifyOtp(String phone, String token) async {
-    try {
-      final res = await _sb.auth.verifyOTP(
-        phone: phone,
-        token: token,
-        type: OtpType.sms,
-      );
-      final user = res.user;
-      if (user == null) throw AuthFailure('Verification failed — try again');
-
-      final row =
-          await _sb.from('users').select().eq('id', user.id).maybeSingle();
-      if (row == null) return VerifyResult(true, null);
-
-      final profile = AppUser.fromRow(row);
-      if (profile.isBanned) {
-        await _sb.auth.signOut();
-        throw AuthFailure('This account has been suspended');
+      await _sb.auth.signInWithPassword(email: email, password: pw);
+    } on AuthException {
+      // Not registered yet → create the account (instant, no confirmation).
+      try {
+        await _sb.auth.signUp(email: email, password: pw);
+      } on AuthException catch (e2) {
+        if (e2.message.toLowerCase().contains('already')) {
+          await _sb.auth.signInWithPassword(email: email, password: pw);
+        } else {
+          throw AuthFailure(friendly(e2.message));
+        }
       }
-      return VerifyResult(false, profile);
-    } on AuthFailure {
-      rethrow;
-    } on AuthException catch (e) {
-      throw AuthFailure(friendly(e.message));
-    } catch (e) {
-      throw AuthFailure(friendly(e.toString()));
+    }
+    if (_sb.auth.currentSession == null) {
+      throw AuthFailure(
+          'Could not sign in. In Supabase → Authentication → Email, turn OFF '
+          '"Confirm email".');
     }
   }
 
@@ -122,22 +109,25 @@ class AuthService {
     required String fullName,
     required DateTime dateOfBirth,
     required String city,
+    required String phone, // E.164, e.g. +213…
     required String role, // 'captain' | 'player'
     String? teamId,
   }) async {
     final user = _sb.auth.currentUser;
     if (user == null) throw AuthFailure('Your session expired — sign in again');
     final dob = _fmtDate(dateOfBirth);
+    final effectiveRole =
+        phone == SupabaseService.adminPhone ? 'admin' : role;
     try {
       final row = await _sb
           .from('users')
           .upsert({
             'id': user.id,
-            'phone': user.phone == null ? null : '+${user.phone}',
+            'phone': phone,
             'full_name': fullName,
             'date_of_birth': dob,
             'city': city,
-            'role': role,
+            'role': effectiveRole,
             'team_id': teamId,
           })
           .select()
@@ -148,8 +138,7 @@ class AuthService {
     }
   }
 
-  /// Sets the current user's team + role (used right after a team is created
-  /// or joined).
+  /// Sets the current user's team + role (after a team is created or joined).
   static Future<void> setTeam(String teamId, {required String role}) async {
     final user = _sb.auth.currentUser;
     if (user == null) throw AuthFailure('Your session expired — sign in again');
@@ -186,17 +175,11 @@ class AuthService {
 
   static String friendly(String raw) {
     final m = raw.toLowerCase();
-    if (m.contains('token has expired') || m.contains('invalid') && m.contains('otp')) {
-      return 'That code is wrong or expired — try again';
+    if (m.contains('confirm') && m.contains('email')) {
+      return 'Turn off "Confirm email" in Supabase → Authentication → Email.';
     }
-    if (m.contains('otp') || m.contains('code')) {
-      return 'That code is wrong or expired — try again';
-    }
-    if (m.contains('sms') || m.contains('provider')) {
-      return 'Could not send the SMS — check the number and try again';
-    }
-    if (m.contains('rate') || m.contains('limit')) {
-      return 'Too many attempts — wait a moment and try again';
+    if (m.contains('duplicate') || m.contains('unique')) {
+      return 'That phone number is already registered to another account.';
     }
     if (m.contains('socket') ||
         m.contains('failed host') ||

@@ -26,12 +26,15 @@ In the Supabase **SQL editor**, run, in order:
 2. `database/storage.sql` — the `team-logos` and `game-photos` public buckets + policies.
 3. `database/notifications.sql` — in-app notifications.
 
-### 3. Phone login (OTP)
-1. **Authentication → Providers → Phone**: enable it.
-2. For development you don't need a paid SMS provider yet — go to
-   **Authentication → Phone → Test OTP** and add a test number + fixed code
-   (e.g. `+213555000001` → `123456`). You can log in with that instantly, $0.
-3. Before launch, connect a real SMS provider (Twilio / Vonage / MessageBird).
+### 3. Login (testing mode — no verification)
+For now registration is a single form (name, DOB, wilaya, phone) with **no OTP /
+no SMS**. The phone is the account identity; under the hood the app uses
+Supabase email/password with confirmation off.
+1. **Authentication → Sign In / Providers → Email**: make sure it's enabled and
+   turn **OFF "Confirm email"** (so sign-up is instant, no email sent).
+2. That's it — no Phone provider, no Twilio needed for testing.
+3. **Before launch**, switch back to real phone OTP (see `AuthService`) and wire
+   an SMS provider (Twilio / Vonage / MessageBird).
 
 ### 4. Admin
 Set `adminPhone` in `lib/core/services/supabase_service.dart` to your own number

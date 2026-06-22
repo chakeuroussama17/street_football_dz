@@ -70,6 +70,7 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
         fullName: draft.fullName,
         dateOfBirth: draft.dateOfBirth,
         city: draft.city,
+        phone: draft.phone,
         role: 'captain',
       );
       // 2. Optional logo upload.

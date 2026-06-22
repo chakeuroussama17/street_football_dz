@@ -277,6 +277,7 @@ class _TeamBody extends ConsumerWidget {
         fullName: me.fullName,
         dateOfBirth: me.dateOfBirth ?? DateTime(2000),
         city: me.city ?? '',
+        phone: me.phone,
       );
     }
     context.goNamed('role-choice');

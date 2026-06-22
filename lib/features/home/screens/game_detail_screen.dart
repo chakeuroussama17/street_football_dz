@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/algeria.dart';
 import '../../../core/providers/game_providers.dart';
 import '../../../core/providers/session_provider.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../core/services/game_service.dart';
-import '../../../core/services/supabase_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -231,11 +231,10 @@ class _Body extends ConsumerWidget {
       );
 
   Future<void> _openBidSheet(BuildContext context, WidgetRef ref) async {
-    final defaultPhone = SupabaseService.phone == null
-        ? ''
-        : (SupabaseService.phone!.startsWith('+')
-            ? SupabaseService.phone!
-            : '+${SupabaseService.phone!}');
+    // Prefill the bidder's contact with their registered phone.
+    final me = await AuthService.currentAppUser();
+    final defaultPhone = me?.phone ?? '';
+    if (!context.mounted) return;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,

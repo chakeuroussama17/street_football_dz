@@ -58,6 +58,7 @@ class _JoinTeamScreenState extends ConsumerState<JoinTeamScreen> {
         fullName: draft.fullName,
         dateOfBirth: draft.dateOfBirth,
         city: draft.city,
+        phone: draft.phone,
         role: 'player',
         teamId: team.id,
       );

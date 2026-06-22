@@ -9,10 +9,12 @@ class OnboardingDraft {
   final String fullName;
   final DateTime dateOfBirth;
   final String city;
+  final String phone; // E.164
   const OnboardingDraft({
     required this.fullName,
     required this.dateOfBirth,
     required this.city,
+    required this.phone,
   });
 }
 
@@ -23,19 +25,25 @@ final currentUserProvider = FutureProvider.autoDispose<AppUser?>(
   (ref) => AuthService.currentAppUser(),
 );
 
+bool _isAdmin(AppUser? user) =>
+    user != null &&
+    (user.role == 'admin' || user.phone == SupabaseService.adminPhone);
+
 /// Pushes a freshly loaded profile into the session state providers (role,
 /// admin flag, team id). Call after login and after onboarding completes.
 void applySessionState(Ref ref, AppUser? user) {
-  ref.read(isAdminProvider.notifier).state = SupabaseService.isAdmin;
+  final admin = _isAdmin(user);
+  ref.read(isAdminProvider.notifier).state = admin;
   ref.read(userRoleProvider.notifier).state =
-      SupabaseService.isAdmin ? UserRole.admin : roleFromString(user?.role);
+      admin ? UserRole.admin : roleFromString(user?.role);
   ref.read(myTeamIdProvider.notifier).state = user?.teamId;
 }
 
 /// Same as [applySessionState] but usable from a widget with a [WidgetRef].
 void applySessionStateW(WidgetRef ref, AppUser? user) {
-  ref.read(isAdminProvider.notifier).state = SupabaseService.isAdmin;
+  final admin = _isAdmin(user);
+  ref.read(isAdminProvider.notifier).state = admin;
   ref.read(userRoleProvider.notifier).state =
-      SupabaseService.isAdmin ? UserRole.admin : roleFromString(user?.role);
+      admin ? UserRole.admin : roleFromString(user?.role);
   ref.read(myTeamIdProvider.notifier).state = user?.teamId;
 }

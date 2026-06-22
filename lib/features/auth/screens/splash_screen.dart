@@ -8,7 +8,7 @@ import '../../../core/theme/app_colors.dart';
 
 /// Decides where to send the user on launch:
 ///  - no session            → welcome
-///  - session, no profile    → profile setup (verified before, never finished)
+///  - session, no profile    → sign out + welcome (restart registration)
 ///  - session, no team yet   → role choice
 ///  - session + team         → home
 class SplashScreen extends ConsumerStatefulWidget {
@@ -36,7 +36,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final me = await AuthService.currentAppUser();
     if (!mounted) return;
     if (me == null) {
-      context.goNamed('profile-setup');
+      // Signed in but no profile (bailed mid-onboarding) → restart cleanly.
+      await AuthService.signOut();
+      if (mounted) context.goNamed('welcome');
       return;
     }
     applySessionStateW(ref, me);
@@ -47,6 +49,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         fullName: me.fullName,
         dateOfBirth: me.dateOfBirth ?? DateTime(2000),
         city: me.city ?? '',
+        phone: me.phone,
       );
       context.goNamed('role-choice');
     }

@@ -61,13 +61,13 @@ class WelcomeScreen extends StatelessWidget {
                   CustomButton(
                     label: t.getStarted,
                     icon: Icons.sports_soccer,
-                    onPressed: () => context.pushNamed('phone'),
+                    onPressed: () => context.pushNamed('register'),
                   ).animate(delay: 550.ms).fadeIn().slideY(begin: 0.3),
                   const SizedBox(height: 12),
                   CustomButton(
                     label: t.iHaveAccount,
                     variant: ButtonVariant.ghost,
-                    onPressed: () => context.pushNamed('phone'),
+                    onPressed: () => context.pushNamed('register'),
                   ).animate(delay: 650.ms).fadeIn(),
                 ],
               ),
