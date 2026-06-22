@@ -13,9 +13,9 @@ import '../../../core/widgets/onboarding_scaffold.dart';
 import '../../../core/widgets/wilaya_dropdown.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Single registration form (no verification): name, date of birth, wilaya,
-/// phone. On continue it signs the phone in (creating the account on first
-/// use), then routes to role choice (new user) or home (returning user).
+/// Registration: email + password (the login credential) plus the profile
+/// details (name, DOB, wilaya, phone). On submit it creates the account, then
+/// goes to the captain/player choice. No OTP, no SMS.
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -24,6 +24,8 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final _email = TextEditingController();
+  final _password = TextEditingController();
   final _name = TextEditingController();
   final _phone = TextEditingController();
   DateTime? _dob;
@@ -32,6 +34,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
+    _email.dispose();
+    _password.dispose();
     _name.dispose();
     _phone.dispose();
     super.dispose();
@@ -55,8 +59,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (picked != null) setState(() => _dob = picked);
   }
 
-  Future<void> _continue() async {
+  Future<void> _submit() async {
     final t = AppLocalizations.of(context);
+    final email = _email.text.trim();
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      _snack(t.invalidEmail);
+      return;
+    }
+    if (_password.text.length < 6) {
+      _snack(t.passwordTooShort);
+      return;
+    }
     if (_name.text.trim().isEmpty || _dob == null || _city == null) {
       _snack(t.fieldRequired);
       return;
@@ -66,7 +79,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       _snack(t.invalidPhone);
       return;
     }
-    // Minimum age 13.
     final now = DateTime.now();
     var age = now.year - _dob!.year;
     if (now.month < _dob!.month ||
@@ -80,16 +92,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     setState(() => _loading = true);
     try {
-      await AuthService.authByPhone(phone);
-      final me = await AuthService.currentAppUser();
+      await AuthService.signUp(email: email, password: _password.text);
       if (!mounted) return;
-      // Returning user with a team → straight into the app.
-      if (me != null && me.hasTeam) {
-        applySessionStateW(ref, me);
-        context.goNamed('home');
-        return;
-      }
-      // New user (or didn't finish onboarding) → choose captain / player.
       ref.read(onboardingDraftProvider.notifier).state = OnboardingDraft(
         fullName: _name.text.trim(),
         dateOfBirth: _dob!,
@@ -111,15 +115,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return OnboardingScaffold(
-      title: t.profileTitle,
-      subtitle: t.profileSubtitle,
+      title: t.registerTitle,
+      subtitle: t.registerSubtitle,
       bottom: CustomButton(
-        label: t.continueLabel,
+        label: t.createAccount,
         icon: Icons.arrow_forward_rounded,
         isLoading: _loading,
-        onPressed: _loading ? null : _continue,
+        onPressed: _loading ? null : _submit,
       ),
       children: [
+        CustomInput(
+          label: t.emailLabel,
+          hint: t.emailHint,
+          controller: _email,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 16),
+        CustomInput(
+          label: t.passwordLabel,
+          controller: _password,
+          obscureText: true,
+        ),
+        const SizedBox(height: 16),
         CustomInput(label: t.fullName, controller: _name),
         const SizedBox(height: 16),
         _DateField(
@@ -172,6 +189,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: TextButton(
+            onPressed: () => context.pushReplacementNamed('login'),
+            child: Text(t.iHaveAccount,
+                style: const TextStyle(color: AppColors.green)),
+          ),
         ),
       ],
     );

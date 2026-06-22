@@ -224,5 +224,17 @@
   "adSaved": "Saved",
   "noAds": "No ads yet.",
   "edit": "Edit",
-  "openLink": "Open"
+  "openLink": "Open",
+  "loginTitle": "Welcome back",
+  "loginSubtitle": "Log in to your account.",
+  "registerTitle": "Create your account",
+  "registerSubtitle": "A few details to get you started.",
+  "emailLabel": "Email",
+  "emailHint": "you@example.com",
+  "passwordLabel": "Password",
+  "login": "Log in",
+  "createAccount": "Create account",
+  "noAccountCta": "New here? Create an account",
+  "invalidEmail": "Enter a valid email",
+  "passwordTooShort": "At least 6 characters"
 }

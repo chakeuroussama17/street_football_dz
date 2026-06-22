@@ -67,7 +67,7 @@ class WelcomeScreen extends StatelessWidget {
                   CustomButton(
                     label: t.iHaveAccount,
                     variant: ButtonVariant.ghost,
-                    onPressed: () => context.pushNamed('register'),
+                    onPressed: () => context.pushNamed('login'),
                   ).animate(delay: 650.ms).fadeIn(),
                 ],
               ),

@@ -669,4 +669,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openLink => 'Open';
+
+  @override
+  String get loginTitle => 'Welcome back';
+
+  @override
+  String get loginSubtitle => 'Log in to your account.';
+
+  @override
+  String get registerTitle => 'Create your account';
+
+  @override
+  String get registerSubtitle => 'A few details to get you started.';
+
+  @override
+  String get emailLabel => 'Email';
+
+  @override
+  String get emailHint => 'you@example.com';
+
+  @override
+  String get passwordLabel => 'Password';
+
+  @override
+  String get login => 'Log in';
+
+  @override
+  String get createAccount => 'Create account';
+
+  @override
+  String get noAccountCta => 'New here? Create an account';
+
+  @override
+  String get invalidEmail => 'Enter a valid email';
+
+  @override
+  String get passwordTooShort => 'At least 6 characters';
 }

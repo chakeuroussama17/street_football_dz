@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/screens/splash_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
 import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/role_choice_screen.dart';
 import '../features/auth/screens/create_team_screen.dart';
 import '../features/auth/screens/join_team_screen.dart';
@@ -36,6 +37,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/register',
           name: 'register',
           builder: (c, s) => const RegisterScreen()),
+      GoRoute(
+          path: '/login',
+          name: 'login',
+          builder: (c, s) => const LoginScreen()),
       GoRoute(
           path: '/role-choice',
           name: 'role-choice',

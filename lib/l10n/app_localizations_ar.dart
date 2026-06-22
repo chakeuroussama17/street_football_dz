@@ -664,4 +664,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get openLink => 'فتح';
+
+  @override
+  String get loginTitle => 'مرحباً بعودتك';
+
+  @override
+  String get loginSubtitle => 'سجّل الدخول إلى حسابك.';
+
+  @override
+  String get registerTitle => 'أنشئ حسابك';
+
+  @override
+  String get registerSubtitle => 'بعض المعلومات للبدء.';
+
+  @override
+  String get emailLabel => 'البريد الإلكتروني';
+
+  @override
+  String get emailHint => 'you@example.com';
+
+  @override
+  String get passwordLabel => 'كلمة المرور';
+
+  @override
+  String get login => 'تسجيل الدخول';
+
+  @override
+  String get createAccount => 'إنشاء حساب';
+
+  @override
+  String get noAccountCta => 'جديد هنا؟ أنشئ حساباً';
+
+  @override
+  String get invalidEmail => 'أدخل بريداً إلكترونياً صحيحاً';
+
+  @override
+  String get passwordTooShort => '6 أحرف على الأقل';
 }

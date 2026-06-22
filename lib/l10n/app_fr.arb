@@ -211,5 +211,17 @@
   "adSaved": "Enregistré",
   "noAds": "Aucune annonce.",
   "edit": "Modifier",
-  "openLink": "Ouvrir"
+  "openLink": "Ouvrir",
+  "loginTitle": "Bon retour",
+  "loginSubtitle": "Connecte-toi à ton compte.",
+  "registerTitle": "Crée ton compte",
+  "registerSubtitle": "Quelques infos pour commencer.",
+  "emailLabel": "E-mail",
+  "emailHint": "toi@exemple.com",
+  "passwordLabel": "Mot de passe",
+  "login": "Se connecter",
+  "createAccount": "Créer le compte",
+  "noAccountCta": "Nouveau ? Crée un compte",
+  "invalidEmail": "Entre un e-mail valide",
+  "passwordTooShort": "Au moins 6 caractères"
 }

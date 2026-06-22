@@ -66,41 +66,39 @@ class AppUser {
 class AuthService {
   static final _sb = SupabaseService.supabase;
 
-  // ── Testing-mode auth (NO verification) ──────────────────────────────────────
-  // The phone number is the account identity. We sign the user in/up with a
-  // deterministic email + password derived from the phone, with Supabase email
-  // confirmation turned OFF — so there's no OTP, no SMS, no verification step.
-  // (Not secure: anyone who knows a phone can sign in. Fine for testing; swap
-  // back to real OTP before launch.)
+  // ── Email + password auth (like Dreaming Ball) ───────────────────────────────
+  // Simple and reliable: register with email + password, log in with email +
+  // password. No OTP, no SMS. (Enable the Email provider in Supabase and turn
+  // OFF "Confirm email" so sign-up is instant.)
 
-  static String _emailFor(String phoneE164) =>
-      '${phoneE164.replaceAll(RegExp(r'\D'), '')}@sfdz.app';
-
-  static String _passwordFor(String phoneE164) =>
-      'sfdz-${phoneE164.replaceAll(RegExp(r'\D'), '')}';
-
-  /// Signs the phone in, creating the account on first use. No verification.
-  static Future<void> authByPhone(String phoneE164) async {
-    final email = _emailFor(phoneE164);
-    final pw = _passwordFor(phoneE164);
+  /// Creates an account. Throws a friendly error on failure.
+  static Future<void> signUp(
+      {required String email, required String password}) async {
     try {
-      await _sb.auth.signInWithPassword(email: email, password: pw);
-    } on AuthException {
-      // Not registered yet → create the account (instant, no confirmation).
-      try {
-        await _sb.auth.signUp(email: email, password: pw);
-      } on AuthException catch (e2) {
-        if (e2.message.toLowerCase().contains('already')) {
-          await _sb.auth.signInWithPassword(email: email, password: pw);
-        } else {
-          throw AuthFailure(friendly(e2.message));
-        }
+      final res = await _sb.auth.signUp(email: email, password: password);
+      if (res.session == null) {
+        throw AuthFailure(
+            'Account made, but email confirmation is on. In Supabase → '
+            'Authentication → Email, turn OFF "Confirm email", then sign in.');
       }
+    } on AuthFailure {
+      rethrow;
+    } on AuthException catch (e) {
+      throw AuthFailure(friendly(e.message));
+    } catch (e) {
+      throw AuthFailure(friendly(e.toString()));
     }
-    if (_sb.auth.currentSession == null) {
-      throw AuthFailure(
-          'Could not sign in. In Supabase → Authentication → Email, turn OFF '
-          '"Confirm email".');
+  }
+
+  /// Logs in with email + password.
+  static Future<void> signIn(
+      {required String email, required String password}) async {
+    try {
+      await _sb.auth.signInWithPassword(email: email, password: password);
+    } on AuthException catch (e) {
+      throw AuthFailure(friendly(e.message));
+    } catch (e) {
+      throw AuthFailure(friendly(e.toString()));
     }
   }
 
@@ -175,8 +173,20 @@ class AuthService {
 
   static String friendly(String raw) {
     final m = raw.toLowerCase();
-    if (m.contains('confirm') && m.contains('email')) {
+    if (m.contains('already registered') || m.contains('already been')) {
+      return 'Email already in use — try logging in.';
+    }
+    if (m.contains('invalid login') || m.contains('invalid credentials')) {
+      return 'Wrong email or password.';
+    }
+    if (m.contains('password') && m.contains('at least')) {
+      return 'Password too short — use at least 6 characters.';
+    }
+    if (m.contains('email') && m.contains('confirm')) {
       return 'Turn off "Confirm email" in Supabase → Authentication → Email.';
+    }
+    if (m.contains('signups') || m.contains('not allowed')) {
+      return 'Sign-ups are disabled in Supabase → Authentication settings.';
     }
     if (m.contains('duplicate') || m.contains('unique')) {
       return 'That phone number is already registered to another account.';
@@ -184,9 +194,10 @@ class AuthService {
     if (m.contains('socket') ||
         m.contains('failed host') ||
         m.contains('connection') ||
-        m.contains('network')) {
-      return 'Check your connection and try again';
+        m.contains('network') ||
+        m.contains('timeout')) {
+      return 'Check your connection and try again.';
     }
-    return 'Something went wrong — please try again';
+    return 'Something went wrong — please try again.';
   }
 }

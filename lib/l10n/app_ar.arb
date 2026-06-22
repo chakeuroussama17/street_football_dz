@@ -211,5 +211,17 @@
   "adSaved": "تم الحفظ",
   "noAds": "لا توجد إعلانات بعد.",
   "edit": "تعديل",
-  "openLink": "فتح"
+  "openLink": "فتح",
+  "loginTitle": "مرحباً بعودتك",
+  "loginSubtitle": "سجّل الدخول إلى حسابك.",
+  "registerTitle": "أنشئ حسابك",
+  "registerSubtitle": "بعض المعلومات للبدء.",
+  "emailLabel": "البريد الإلكتروني",
+  "emailHint": "you@example.com",
+  "passwordLabel": "كلمة المرور",
+  "login": "تسجيل الدخول",
+  "createAccount": "إنشاء حساب",
+  "noAccountCta": "جديد هنا؟ أنشئ حساباً",
+  "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً",
+  "passwordTooShort": "6 أحرف على الأقل"
 }
