@@ -225,5 +225,12 @@
   "invalidEmail": "Entre un e-mail valide",
   "passwordTooShort": "Au moins 6 caractères",
   "manageUsers": "Utilisateurs",
-  "joinedOn": "Inscrit le {date}"
+  "joinedOn": "Inscrit le {date}",
+  "editWindowNote": "Tu peux modifier le score pendant 10 minutes après l'enregistrement. Ensuite c'est définitif.",
+  "editWindowLeft": "~{minutes} min pour modifier",
+  "resultFinal": "Ce résultat est définitif.",
+  "reviewComment": "Commentaire (optionnel)",
+  "reviewCommentHint": "Comment était le match / l'équipe hôte ?",
+  "reviewsTitle": "Avis",
+  "noReviews": "Aucun avis pour l'instant."
 }

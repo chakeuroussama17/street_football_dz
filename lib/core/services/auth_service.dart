@@ -20,6 +20,7 @@ class AppUser {
   final String? teamId;
   final String? avatarUrl;
   final bool isBanned;
+  final String language; // 'ar' | 'fr'
 
   const AppUser({
     required this.id,
@@ -31,6 +32,7 @@ class AppUser {
     this.teamId,
     this.avatarUrl,
     this.isBanned = false,
+    this.language = 'ar',
   });
 
   factory AppUser.fromRow(Map<String, dynamic> r) => AppUser(
@@ -45,6 +47,7 @@ class AppUser {
         teamId: r['team_id'] as String?,
         avatarUrl: r['avatar_url'] as String?,
         isBanned: (r['is_banned'] ?? false) as bool,
+        language: (r['language'] ?? 'ar') as String,
       );
 
   bool get isCaptain => role == 'captain';
@@ -136,6 +139,15 @@ class AuthService {
     } catch (e) {
       throw AuthFailure(friendly(e.toString()));
     }
+  }
+
+  /// Persists the user's preferred UI language ('ar' | 'fr').
+  static Future<void> setLanguage(String language) async {
+    final user = _sb.auth.currentUser;
+    if (user == null) return;
+    try {
+      await _sb.from('users').update({'language': language}).eq('id', user.id);
+    } catch (_) {}
   }
 
   /// Sets the current user's team + role (after a team is created or joined).

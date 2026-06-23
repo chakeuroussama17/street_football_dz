@@ -708,4 +708,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String joinedOn(String date) {
     return 'انضم في $date';
   }
+
+  @override
+  String get editWindowNote =>
+      'يمكنك تعديل النتيجة خلال 10 دقائق من الحفظ. بعدها تصبح نهائية.';
+
+  @override
+  String editWindowLeft(int minutes) {
+    return 'بقي ~$minutes دقيقة للتعديل';
+  }
+
+  @override
+  String get resultFinal => 'هذه النتيجة نهائية.';
+
+  @override
+  String get reviewComment => 'تعليق (اختياري)';
+
+  @override
+  String get reviewCommentHint => 'كيف كانت المباراة / الفريق المضيف؟';
+
+  @override
+  String get reviewsTitle => 'التقييمات';
+
+  @override
+  String get noReviews => 'لا توجد تقييمات بعد.';
 }

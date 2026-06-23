@@ -1455,6 +1455,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Joined {date}'**
   String joinedOn(String date);
+
+  /// No description provided for @editWindowNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You can edit the score for 10 minutes after saving. After that it\'s final.'**
+  String get editWindowNote;
+
+  /// No description provided for @editWindowLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'~{minutes} min left to edit'**
+  String editWindowLeft(int minutes);
+
+  /// No description provided for @resultFinal.
+  ///
+  /// In en, this message translates to:
+  /// **'This result is final.'**
+  String get resultFinal;
+
+  /// No description provided for @reviewComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment (optional)'**
+  String get reviewComment;
+
+  /// No description provided for @reviewCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How was the match / the host team?'**
+  String get reviewCommentHint;
+
+  /// No description provided for @reviewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get reviewsTitle;
+
+  /// No description provided for @noReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet.'**
+  String get noReviews;
 }
 
 class _AppLocalizationsDelegate

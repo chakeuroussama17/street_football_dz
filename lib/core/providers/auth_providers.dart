@@ -1,6 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_service.dart';
 import '../services/supabase_service.dart';
+import 'app_settings.dart';
 import 'session_provider.dart';
 
 /// Draft profile basics collected during onboarding, carried from the profile
@@ -31,13 +33,17 @@ bool _isAdmin(AppUser? user) =>
         (user.role == 'admin' || user.phone == SupabaseService.adminPhone));
 
 /// Pushes a freshly loaded profile into the session state providers (role,
-/// admin flag, team id). Call after login and after onboarding completes.
+/// admin flag, team id) and applies the user's preferred language. Call after
+/// login and after onboarding completes.
 void applySessionState(Ref ref, AppUser? user) {
   final admin = _isAdmin(user);
   ref.read(isAdminProvider.notifier).state = admin;
   ref.read(userRoleProvider.notifier).state =
       admin ? UserRole.admin : roleFromString(user?.role);
   ref.read(myTeamIdProvider.notifier).state = user?.teamId;
+  if (user != null) {
+    ref.read(localeProvider.notifier).set(Locale(user.language));
+  }
 }
 
 /// Same as [applySessionState] but usable from a widget with a [WidgetRef].
@@ -47,4 +53,7 @@ void applySessionStateW(WidgetRef ref, AppUser? user) {
   ref.read(userRoleProvider.notifier).state =
       admin ? UserRole.admin : roleFromString(user?.role);
   ref.read(myTeamIdProvider.notifier).state = user?.teamId;
+  if (user != null) {
+    ref.read(localeProvider.notifier).set(Locale(user.language));
+  }
 }

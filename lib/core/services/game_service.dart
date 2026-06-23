@@ -469,12 +469,14 @@ class GameService {
     }
   }
 
-  /// Visiting team rates the host team (1–5). One rating per game per team.
+  /// Visiting team rates the host team (1–5) with an optional comment.
+  /// One rating per game per team.
   static Future<void> rateHost({
     required String gameId,
     required String raterTeamId,
     required String ratedTeamId,
     required int stars,
+    String? comment,
   }) async {
     try {
       await _sb.from('ratings').insert({
@@ -482,11 +484,26 @@ class GameService {
         'rater_team_id': raterTeamId,
         'rated_team_id': ratedTeamId,
         'stars': stars,
+        'comment': comment,
       });
     } on PostgrestException catch (e) {
       if (e.code == '23505') return; // already rated — ignore
       throw GameFailure('Could not save your rating — please try again');
     }
+  }
+
+  /// All reviews left for a team (newest first), with the rater team's name.
+  static Future<List<Review>> fetchTeamReviews(String teamId) async {
+    final rows = await _sb
+        .from('ratings')
+        .select(
+            'stars, comment, created_at, '
+            'rater:teams!ratings_rater_team_id_fkey(name)')
+        .eq('rated_team_id', teamId)
+        .order('created_at', ascending: false);
+    return (rows as List)
+        .map((r) => Review.fromRow(r as Map<String, dynamic>))
+        .toList();
   }
 
   /// The visiting team's existing rating for a game (stars), or null.
@@ -543,6 +560,27 @@ class MatchGame {
         opponent: r['opp'] == null
             ? null
             : TeamLite.fromRow(r['opp'] as Map<String, dynamic>),
+      );
+}
+
+/// A review left for a team by a visiting team.
+class Review {
+  final int stars;
+  final String? comment;
+  final String raterName;
+  final DateTime createdAt;
+  const Review({
+    required this.stars,
+    this.comment,
+    required this.raterName,
+    required this.createdAt,
+  });
+
+  factory Review.fromRow(Map<String, dynamic> r) => Review(
+        stars: (r['stars'] ?? 0) as int,
+        comment: r['comment'] as String?,
+        raterName: ((r['rater'] as Map?)?['name'] ?? '') as String,
+        createdAt: DateTime.parse(r['created_at'] as String).toLocal(),
       );
 }
 

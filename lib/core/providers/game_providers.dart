@@ -93,3 +93,9 @@ final contactPhoneProvider =
     FutureProvider.autoDispose.family<String?, (String, bool)>(
   (ref, key) => GameService.contactPhone(key.$1, amHost: key.$2),
 );
+
+/// Reviews left for a team (shown on the team's games + profile).
+final teamReviewsProvider =
+    FutureProvider.autoDispose.family<List<Review>, String>(
+  (ref, teamId) => GameService.fetchTeamReviews(teamId),
+);

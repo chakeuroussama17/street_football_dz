@@ -719,4 +719,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String joinedOn(String date) {
     return 'Inscrit le $date';
   }
+
+  @override
+  String get editWindowNote =>
+      'Tu peux modifier le score pendant 10 minutes après l\'enregistrement. Ensuite c\'est définitif.';
+
+  @override
+  String editWindowLeft(int minutes) {
+    return '~$minutes min pour modifier';
+  }
+
+  @override
+  String get resultFinal => 'Ce résultat est définitif.';
+
+  @override
+  String get reviewComment => 'Commentaire (optionnel)';
+
+  @override
+  String get reviewCommentHint => 'Comment était le match / l\'équipe hôte ?';
+
+  @override
+  String get reviewsTitle => 'Avis';
+
+  @override
+  String get noReviews => 'Aucun avis pour l\'instant.';
 }

@@ -36,13 +36,38 @@ void main() {
   });
 
   group('canEnterScore (host)', () {
-    test('allowed once matched', () {
-      expect(canEnterScore('matched'), isTrue);
-      expect(canEnterScore('completed'), isTrue);
+    final now = DateTime(2030, 1, 1, 12);
+    test('allowed once matched (no score yet)', () {
+      expect(canEnterScore(status: 'matched', scoredAt: null, now: now),
+          isTrue);
+    });
+    test('editable within 10 minutes of saving', () {
+      expect(
+          canEnterScore(
+              status: 'completed',
+              scoredAt: now.subtract(const Duration(minutes: 5)),
+              now: now),
+          isTrue);
+    });
+    test('locked after 10 minutes', () {
+      expect(
+          canEnterScore(
+              status: 'completed',
+              scoredAt: now.subtract(const Duration(minutes: 11)),
+              now: now),
+          isFalse);
     });
     test('blocked for open/cancelled games', () {
-      expect(canEnterScore('open'), isFalse);
-      expect(canEnterScore('cancelled'), isFalse);
+      expect(canEnterScore(status: 'open', scoredAt: null, now: now), isFalse);
+      expect(canEnterScore(status: 'cancelled', scoredAt: null, now: now),
+          isFalse);
+    });
+    test('editMinutesLeft counts down and floors at 0', () {
+      expect(
+          editMinutesLeft(now.subtract(const Duration(minutes: 11)), now), 0);
+      expect(
+          editMinutesLeft(now.subtract(const Duration(minutes: 3)), now) > 0,
+          isTrue);
     });
   });
 

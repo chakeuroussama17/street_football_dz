@@ -239,5 +239,13 @@
   "passwordTooShort": "At least 6 characters",
   "manageUsers": "Users",
   "joinedOn": "Joined {date}",
-  "@joinedOn": { "placeholders": { "date": { "type": "String" } } }
+  "@joinedOn": { "placeholders": { "date": { "type": "String" } } },
+  "editWindowNote": "You can edit the score for 10 minutes after saving. After that it's final.",
+  "editWindowLeft": "~{minutes} min left to edit",
+  "@editWindowLeft": { "placeholders": { "minutes": { "type": "int" } } },
+  "resultFinal": "This result is final.",
+  "reviewComment": "Comment (optional)",
+  "reviewCommentHint": "How was the match / the host team?",
+  "reviewsTitle": "Reviews",
+  "noReviews": "No reviews yet."
 }

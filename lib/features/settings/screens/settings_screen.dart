@@ -23,14 +23,12 @@ class SettingsScreen extends ConsumerWidget {
           _radioTile(
             label: t.arabic,
             selected: locale.languageCode == 'ar',
-            onTap: () =>
-                ref.read(localeProvider.notifier).set(const Locale('ar')),
+            onTap: () => _setLanguage(ref, 'ar'),
           ),
           _radioTile(
             label: t.french,
             selected: locale.languageCode == 'fr',
-            onTap: () =>
-                ref.read(localeProvider.notifier).set(const Locale('fr')),
+            onTap: () => _setLanguage(ref, 'fr'),
           ),
           const SizedBox(height: 28),
           OutlinedButton.icon(
@@ -51,6 +49,12 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Applies the language now and saves it to the user's profile.
+  void _setLanguage(WidgetRef ref, String code) {
+    ref.read(localeProvider.notifier).set(Locale(code));
+    AuthService.setLanguage(code);
   }
 
   Widget _section(String title) => Padding(

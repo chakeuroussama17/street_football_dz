@@ -13,6 +13,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/match_rules.dart';
 import '../../../core/widgets/custom_button.dart';
+import '../../../core/widgets/custom_input.dart';
 import '../../../core/widgets/star_rating.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../../core/widgets/team_avatar.dart';
@@ -185,22 +186,45 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
 
   Widget _hostResultSection(AppLocalizations t, MatchGame m) {
     final g = m.game;
-    final eligible = canEnterScore(g.status);
-    if (!eligible && !g.hasScore) {
-      return _box(Row(children: [
-        const Icon(Icons.schedule_rounded,
-            color: AppColors.darkTextMuted, size: 18),
-        const SizedBox(width: 8),
-        Expanded(
-            child: Text(t.afterGameEnds,
-                style: AppTextStyles.body(AppColors.darkTextSecondary))),
-      ]));
+    final now = DateTime.now();
+    final eligible =
+        canEnterScore(status: g.status, scoredAt: g.scoredAt, now: now);
+
+    // Locked: scored and the 10-minute edit window has passed.
+    if (!eligible) {
+      if (g.hasScore) {
+        return _box(Row(children: [
+          const Icon(Icons.lock_rounded,
+              color: AppColors.darkTextMuted, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+              child: Text(t.resultFinal,
+                  style: AppTextStyles.body(AppColors.darkTextSecondary))),
+        ]));
+      }
+      return const SizedBox.shrink();
     }
+
+    final minsLeft = g.hasScore ? editMinutesLeft(g.scoredAt, now) : 10;
     return _box(Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(g.hasScore ? t.editResult : t.enterResult,
             style: AppTextStyles.title(AppColors.darkTextPrimary)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Icons.timer_outlined,
+                size: 15, color: AppColors.gold),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                g.hasScore ? t.editWindowLeft(minsLeft) : t.editWindowNote,
+                style: AppTextStyles.label(AppColors.gold),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -320,6 +344,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
 
   void _maybePromptRating(MatchGame m, String? myTeamId) {
     if (_ratePromptShown || myTeamId == null) return;
+    // Only auto-prompt once the host has posted the result.
+    if (m.game.status != 'completed') return;
     final ratingAsync = ref.read(myRatingProvider((m.game.id, myTeamId)));
     final stars = ratingAsync.valueOrNull;
     final loaded = ratingAsync.hasValue;
@@ -338,6 +364,7 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
   Future<void> _openRateDialog(
       AppLocalizations t, MatchGame m, String myTeamId) async {
     var stars = 0;
+    final comment = TextEditingController();
     final submitted = await showDialog<int>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -345,17 +372,27 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
           backgroundColor: AppColors.darkSurface,
           title: Text(t.rateHostTitle(m.host.name),
               style: AppTextStyles.title(AppColors.darkTextPrimary)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(t.rateHostBody,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.body(AppColors.darkTextSecondary)),
-              const SizedBox(height: 16),
-              StarPicker(
-                  value: stars,
-                  onChanged: (v) => setLocal(() => stars = v)),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(t.rateHostBody,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.body(AppColors.darkTextSecondary)),
+                const SizedBox(height: 16),
+                StarPicker(
+                    value: stars,
+                    onChanged: (v) => setLocal(() => stars = v)),
+                const SizedBox(height: 16),
+                CustomInput(
+                  label: t.reviewComment,
+                  hint: t.reviewCommentHint,
+                  controller: comment,
+                  maxLines: 3,
+                  maxLength: 200,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -380,9 +417,11 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
       raterTeamId: myTeamId,
       ratedTeamId: m.game.hostTeamId,
       stars: submitted,
+      comment: comment.text.trim().isEmpty ? null : comment.text.trim(),
     );
     ref.invalidate(myRatingProvider((m.game.id, myTeamId)));
     ref.invalidate(teamStandingProvider(m.game.hostTeamId));
+    ref.invalidate(teamReviewsProvider(m.game.hostTeamId));
     if (!mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(t.ratingSaved)));

@@ -225,5 +225,12 @@
   "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً",
   "passwordTooShort": "6 أحرف على الأقل",
   "manageUsers": "المستخدمون",
-  "joinedOn": "انضم في {date}"
+  "joinedOn": "انضم في {date}",
+  "editWindowNote": "يمكنك تعديل النتيجة خلال 10 دقائق من الحفظ. بعدها تصبح نهائية.",
+  "editWindowLeft": "بقي ~{minutes} دقيقة للتعديل",
+  "resultFinal": "هذه النتيجة نهائية.",
+  "reviewComment": "تعليق (اختياري)",
+  "reviewCommentHint": "كيف كانت المباراة / الفريق المضيف؟",
+  "reviewsTitle": "التقييمات",
+  "noReviews": "لا توجد تقييمات بعد."
 }

@@ -12,6 +12,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_input.dart';
+import '../../../core/widgets/reviews_section.dart';
 import '../../../core/widgets/star_rating.dart';
 import '../../../core/widgets/team_avatar.dart';
 import '../../../l10n/app_localizations.dart';
@@ -146,6 +147,9 @@ class _Body extends ConsumerWidget {
                       style: AppTextStyles.body(AppColors.darkTextPrimary)),
                 ),
               ],
+              const SizedBox(height: 20),
+              // The host team's reviews, so you know who you'd be playing.
+              ReviewsSection(teamId: g.hostTeamId),
             ],
           ),
         ),
