@@ -236,5 +236,8 @@
   "createAccount": "Create account",
   "noAccountCta": "New here? Create an account",
   "invalidEmail": "Enter a valid email",
-  "passwordTooShort": "At least 6 characters"
+  "passwordTooShort": "At least 6 characters",
+  "manageUsers": "Users",
+  "joinedOn": "Joined {date}",
+  "@joinedOn": { "placeholders": { "date": { "type": "String" } } }
 }

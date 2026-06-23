@@ -17,6 +17,7 @@ import '../features/games/screens/match_detail_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/notifications/screens/notifications_screen.dart';
 import '../features/admin/screens/admin_dashboard_screen.dart';
+import '../features/admin/screens/admin_users_screen.dart';
 import '../features/admin/screens/manage_ads_screen.dart';
 
 /// App router. Built as a provider so routes can read session state for
@@ -91,6 +92,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/admin',
           name: 'admin',
           builder: (c, s) => const AdminDashboardScreen()),
+      GoRoute(
+          path: '/admin/users',
+          name: 'admin-users',
+          builder: (c, s) => const AdminUsersScreen()),
       GoRoute(
           path: '/admin/ads',
           name: 'admin-ads',

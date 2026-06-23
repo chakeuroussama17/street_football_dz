@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/phone.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -94,6 +95,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     try {
       await AuthService.signUp(email: email, password: _password.text);
       if (!mounted) return;
+      // Admin account: create the profile now and go straight in (no team).
+      if (SupabaseService.isAdminEmail) {
+        final me = await AuthService.upsertProfile(
+          fullName: _name.text.trim(),
+          dateOfBirth: _dob!,
+          city: _city!,
+          phone: phone,
+          role: 'admin',
+        );
+        if (!mounted) return;
+        applySessionStateW(ref, me);
+        context.goNamed('home');
+        return;
+      }
       ref.read(onboardingDraftProvider.notifier).state = OnboardingDraft(
         fullName: _name.text.trim(),
         dateOfBirth: _dob!,

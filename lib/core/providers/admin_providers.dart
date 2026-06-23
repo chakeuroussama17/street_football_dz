@@ -5,6 +5,10 @@ final adminStatsProvider = FutureProvider.autoDispose<AdminStats>(
   (ref) => AdminService.fetchStats(),
 );
 
+final adminUsersProvider = FutureProvider.autoDispose<List<AdminUser>>(
+  (ref) => AdminService.fetchUsers(),
+);
+
 /// All ads (admin management view).
 final adsProvider = FutureProvider.autoDispose<List<Ad>>(
   (ref) => AdminService.fetchAds(),

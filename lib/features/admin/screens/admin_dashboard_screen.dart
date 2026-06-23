@@ -37,26 +37,32 @@ class AdminDashboardScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.darkCard,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.darkBorder),
-            ),
-            child: ListTile(
-              leading: const Icon(Icons.campaign_rounded,
-                  color: AppColors.green),
-              title: Text(t.manageAds,
-                  style: AppTextStyles.body(AppColors.darkTextPrimary)),
-              trailing: const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.darkTextMuted),
-              onTap: () => context.pushNamed('admin-ads'),
-            ),
-          ),
+          _navTile(context, Icons.people_alt_rounded, t.manageUsers,
+              'admin-users'),
+          const SizedBox(height: 10),
+          _navTile(context, Icons.campaign_rounded, t.manageAds, 'admin-ads'),
         ],
       ),
     );
   }
+
+  Widget _navTile(
+          BuildContext context, IconData icon, String label, String route) =>
+      Container(
+        decoration: BoxDecoration(
+          color: AppColors.darkCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.darkBorder),
+        ),
+        child: ListTile(
+          leading: Icon(icon, color: AppColors.green),
+          title: Text(label,
+              style: AppTextStyles.body(AppColors.darkTextPrimary)),
+          trailing: const Icon(Icons.chevron_right_rounded,
+              color: AppColors.darkTextMuted),
+          onTap: () => context.pushNamed(route),
+        ),
+      );
 
   Widget _stat(String label, int value, IconData icon, Color color) =>
       Expanded(

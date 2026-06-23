@@ -223,5 +223,7 @@
   "createAccount": "Créer le compte",
   "noAccountCta": "Nouveau ? Crée un compte",
   "invalidEmail": "Entre un e-mail valide",
-  "passwordTooShort": "Au moins 6 caractères"
+  "passwordTooShort": "Au moins 6 caractères",
+  "manageUsers": "Utilisateurs",
+  "joinedOn": "Inscrit le {date}"
 }

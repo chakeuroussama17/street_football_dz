@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../../core/providers/session_provider.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -43,7 +44,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final me = await AuthService.currentAppUser();
       if (!mounted) return;
       applySessionStateW(ref, me);
-      if (me != null && me.hasTeam) {
+      final isAdmin = ref.read(isAdminProvider);
+      if (me != null && (isAdmin || me.hasTeam)) {
         context.goNamed('home');
       } else if (me != null) {
         // Registered but never picked a team — resume there.

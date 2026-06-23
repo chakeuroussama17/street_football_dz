@@ -114,8 +114,10 @@ class AuthService {
     final user = _sb.auth.currentUser;
     if (user == null) throw AuthFailure('Your session expired — sign in again');
     final dob = _fmtDate(dateOfBirth);
-    final effectiveRole =
-        phone == SupabaseService.adminPhone ? 'admin' : role;
+    final effectiveRole = (SupabaseService.isAdminEmail ||
+            phone == SupabaseService.adminPhone)
+        ? 'admin'
+        : role;
     try {
       final row = await _sb
           .from('users')

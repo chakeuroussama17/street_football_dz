@@ -705,4 +705,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passwordTooShort => 'At least 6 characters';
+
+  @override
+  String get manageUsers => 'Users';
+
+  @override
+  String joinedOn(String date) {
+    return 'Joined $date';
+  }
 }

@@ -1443,6 +1443,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At least 6 characters'**
   String get passwordTooShort;
+
+  /// No description provided for @manageUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get manageUsers;
+
+  /// No description provided for @joinedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined {date}'**
+  String joinedOn(String date);
 }
 
 class _AppLocalizationsDelegate

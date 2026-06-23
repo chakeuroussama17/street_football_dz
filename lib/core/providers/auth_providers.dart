@@ -26,8 +26,9 @@ final currentUserProvider = FutureProvider.autoDispose<AppUser?>(
 );
 
 bool _isAdmin(AppUser? user) =>
-    user != null &&
-    (user.role == 'admin' || user.phone == SupabaseService.adminPhone);
+    SupabaseService.isAdminEmail ||
+    (user != null &&
+        (user.role == 'admin' || user.phone == SupabaseService.adminPhone));
 
 /// Pushes a freshly loaded profile into the session state providers (role,
 /// admin flag, team id). Call after login and after onboarding completes.

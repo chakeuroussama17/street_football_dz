@@ -223,5 +223,7 @@
   "createAccount": "إنشاء حساب",
   "noAccountCta": "جديد هنا؟ أنشئ حساباً",
   "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً",
-  "passwordTooShort": "6 أحرف على الأقل"
+  "passwordTooShort": "6 أحرف على الأقل",
+  "manageUsers": "المستخدمون",
+  "joinedOn": "انضم في {date}"
 }

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../../core/providers/session_provider.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// Decides where to send the user on launch:
@@ -36,13 +38,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final me = await AuthService.currentAppUser();
     if (!mounted) return;
     if (me == null) {
-      // Signed in but no profile (bailed mid-onboarding) → restart cleanly.
-      await AuthService.signOut();
-      if (mounted) context.goNamed('welcome');
+      // Admin auth without a profile row → finish via register; otherwise the
+      // session is a half-finished onboarding, so restart cleanly.
+      if (SupabaseService.isAdminEmail) {
+        context.goNamed('register');
+      } else {
+        await AuthService.signOut();
+        if (mounted) context.goNamed('welcome');
+      }
       return;
     }
     applySessionStateW(ref, me);
-    if (me.hasTeam) {
+    if (ref.read(isAdminProvider) || me.hasTeam) {
       context.goNamed('home');
     } else {
       ref.read(onboardingDraftProvider.notifier).state = OnboardingDraft(

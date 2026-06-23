@@ -700,4 +700,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get passwordTooShort => '6 أحرف على الأقل';
+
+  @override
+  String get manageUsers => 'المستخدمون';
+
+  @override
+  String joinedOn(String date) {
+    return 'انضم في $date';
+  }
 }
