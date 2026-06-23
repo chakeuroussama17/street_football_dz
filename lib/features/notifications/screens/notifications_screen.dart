@@ -20,13 +20,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    // Mark everything read when the screen opens.
+    // Mark everything read when the screen opens. The realtime stream then
+    // emits the updated rows, so the bell badge clears on its own.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await NotificationService.markAllRead();
-      if (mounted) {
-        ref.invalidate(unreadCountProvider);
-        ref.invalidate(notificationsProvider);
-      }
     });
   }
 
@@ -43,7 +40,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final notifs = ref.watch(notificationsProvider);
+    final notifs = ref.watch(notificationStreamProvider);
     final localeCode = Localizations.localeOf(context).languageCode;
     final df = DateFormat('d MMM · HH:mm', localeCode);
 

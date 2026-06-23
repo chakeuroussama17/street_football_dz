@@ -86,6 +86,7 @@ class _JoinTeamScreenState extends ConsumerState<JoinTeamScreen> {
     return OnboardingScaffold(
       title: t.joinTeamTitle,
       subtitle: t.joinTeamSubtitle,
+      backgroundAsset: 'assets/images/onboarding_team.png',
       bottom: _found == null
           ? CustomButton(
               label: t.continueLabel,

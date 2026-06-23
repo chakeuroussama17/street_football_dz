@@ -10,6 +10,11 @@ const scoreOpensDelay = Duration(minutes: 5);
 /// that it's locked forever.
 const scoreEditWindow = Duration(minutes: 10);
 
+/// How long after kick-off a matched game stays "running". If the host never
+/// records a score within this window it's auto-finished as a 0–0 draw (handled
+/// server-side) and moves to the Finished section.
+const resultWindow = Duration(hours: 4);
+
 /// The first moment the host may record the result: [scoreOpensDelay] past
 /// kick-off.
 DateTime scoreOpensAt(DateTime kickoff) => kickoff.add(scoreOpensDelay);
@@ -19,17 +24,17 @@ enum MatchPhase { upcoming, live, finished }
 
 /// Classifies a game so the UI can group it under upcoming / live / finished.
 /// Completed and cancelled games are always finished; otherwise it's by time:
-/// before kick-off → upcoming, during the match window → live, after → finished.
+/// before kick-off → upcoming, within [resultWindow] of kick-off → live,
+/// past that → finished (it will be auto-recorded as 0–0).
 MatchPhase matchPhase({
   required String status,
   required DateTime kickoff,
-  required DateTime endTime,
   required DateTime now,
 }) {
   if (status == 'completed' || status == 'cancelled') return MatchPhase.finished;
   if (now.isBefore(kickoff)) return MatchPhase.upcoming;
-  if (!now.isAfter(endTime)) return MatchPhase.live; // kickoff ≤ now ≤ endTime
-  return MatchPhase.finished; // played out, awaiting the result
+  if (now.isBefore(kickoff.add(resultWindow))) return MatchPhase.live;
+  return MatchPhase.finished;
 }
 
 /// League points awarded to (host, opponent) for a final score.

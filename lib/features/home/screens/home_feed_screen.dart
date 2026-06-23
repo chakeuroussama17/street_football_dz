@@ -251,7 +251,7 @@ class _NotificationBell extends ConsumerWidget {
   const _NotificationBell();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unread = ref.watch(unreadCountProvider).valueOrNull ?? 0;
+    final unread = ref.watch(unreadCountProvider);
     return IconButton(
       onPressed: () => context.pushNamed('notifications'),
       icon: Badge(

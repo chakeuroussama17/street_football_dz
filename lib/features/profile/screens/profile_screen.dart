@@ -18,7 +18,7 @@ class ProfileScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context);
     final user = ref.watch(currentUserProvider);
     final isAdmin = ref.watch(isAdminProvider);
-    final unread = ref.watch(unreadCountProvider).valueOrNull ?? 0;
+    final unread = ref.watch(unreadCountProvider);
     final localeCode = Localizations.localeOf(context).languageCode;
 
     return SafeArea(

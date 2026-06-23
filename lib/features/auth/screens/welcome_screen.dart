@@ -18,16 +18,28 @@ class WelcomeScreen extends StatelessWidget {
       backgroundColor: AppColors.darkBg,
       body: Stack(
         children: [
-          // Dark overlay (to darken picture if used, or just dark bg)
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.darkBg,
-                  AppColors.darkBg.withValues(alpha: 0.9),
-                ],
+          // Full-bleed hero photo (street-football action).
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/onboarding_welcome.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // Dark gradient scrim so the logo, title and buttons stay readable.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.darkBg.withValues(alpha: 0.45),
+                    AppColors.darkBg.withValues(alpha: 0.75),
+                    AppColors.darkBg.withValues(alpha: 0.97),
+                  ],
+                  stops: const [0.0, 0.45, 1.0],
+                ),
               ),
             ),
           ),

@@ -50,6 +50,20 @@ class NotificationService {
         .toList();
   }
 
+  /// Live stream of the current user's notifications (newest first). Powers the
+  /// bell badge and the notifications list so they update the moment a new
+  /// notification arrives (via Supabase realtime on the notifications table).
+  static Stream<List<AppNotification>> watch() {
+    final uid = _sb.auth.currentUser?.id;
+    if (uid == null) return Stream.value(const []);
+    return _sb
+        .from('notifications')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', uid)
+        .order('created_at', ascending: false)
+        .map((rows) => rows.map(AppNotification.fromRow).toList());
+  }
+
   static Future<int> unreadCount() async {
     final uid = _sb.auth.currentUser?.id;
     if (uid == null) return 0;

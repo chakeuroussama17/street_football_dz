@@ -316,6 +316,15 @@ class GameService {
 
   // ── My Games ─────────────────────────────────────────────────────────────
 
+  /// Finalises any matched game still unscored 4h after kick-off as a 0–0 draw
+  /// (server-side, idempotent). Fire-and-forget — called when My Games loads so
+  /// stale games close even on projects without pg_cron. Failures are ignored.
+  static Future<void> autoCompleteStaleGames() async {
+    try {
+      await _sb.rpc('auto_complete_stale_games');
+    } catch (_) {}
+  }
+
   /// Games my team posted (newest kick-off first).
   static Future<List<MatchGame>> fetchCreatedGames(String teamId) async {
     final rows = await _sb

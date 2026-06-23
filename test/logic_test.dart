@@ -109,20 +109,21 @@ void main() {
 
   group('matchPhase (My Games sections)', () {
     final kickoff = DateTime(2030, 1, 1, 20);
-    final endTime = kickoff.add(const Duration(minutes: 90));
-    MatchPhase phase(String status, DateTime now) => matchPhase(
-        status: status, kickoff: kickoff, endTime: endTime, now: now);
+    MatchPhase phase(String status, DateTime now) =>
+        matchPhase(status: status, kickoff: kickoff, now: now);
 
     test('before kick-off → upcoming', () {
       expect(phase('matched', kickoff.subtract(const Duration(hours: 1))),
           MatchPhase.upcoming);
     });
-    test('during the match window → live', () {
+    test('within 4h of kick-off → live', () {
       expect(phase('matched', kickoff.add(const Duration(minutes: 30))),
           MatchPhase.live);
+      expect(phase('matched', kickoff.add(const Duration(hours: 3))),
+          MatchPhase.live);
     });
-    test('after the end time → finished', () {
-      expect(phase('matched', endTime.add(const Duration(minutes: 1))),
+    test('past the 4h result window → finished (auto 0–0)', () {
+      expect(phase('matched', kickoff.add(const Duration(hours: 4, minutes: 1))),
           MatchPhase.finished);
     });
     test('completed / cancelled are always finished', () {

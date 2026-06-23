@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/providers/app_settings.dart';
+import '../core/providers/notification_providers.dart';
 import '../core/providers/session_provider.dart';
 import '../core/services/auth_service.dart';
 import '../core/theme/app_theme.dart';
@@ -31,6 +32,9 @@ class _StreetFootballAppState extends ConsumerState<StreetFootballApp> {
         ref.read(userRoleProvider.notifier).state = UserRole.player;
         ref.read(isAdminProvider.notifier).state = false;
         ref.read(myTeamIdProvider.notifier).state = null;
+        // Drop the realtime notification stream so the next account doesn't
+        // inherit this user's subscription/badge.
+        ref.invalidate(notificationStreamProvider);
         // Back to the Arabic default for the next person on this device.
         ref.read(localeProvider.notifier).set(LocaleNotifier.fallback);
         ref.read(routerProvider).goNamed('welcome');

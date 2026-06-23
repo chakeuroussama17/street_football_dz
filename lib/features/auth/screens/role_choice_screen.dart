@@ -19,22 +19,8 @@ class RoleChoiceScreen extends ConsumerWidget {
       title: t.roleTitle,
       subtitle: t.roleSubtitle,
       showBack: false,
+      backgroundAsset: 'assets/images/onboarding_role.png',
       children: [
-        Text(
-          t.roleTitle,
-          style: AppTextStyles.headline(AppColors.darkTextPrimary),
-        )
-            .animate()
-            .fadeIn(duration: 500.ms)
-            .slideY(begin: 0.1),
-        const SizedBox(height: 8),
-        Text(
-          t.roleSubtitle,
-          style: AppTextStyles.body(AppColors.darkTextSecondary),
-        )
-            .animate(delay: 100.ms)
-            .fadeIn(),
-        const SizedBox(height: 32),
         _RoleCard(
           icon: Icons.shield_rounded,
           color: AppColors.green,

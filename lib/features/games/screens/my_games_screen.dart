@@ -110,10 +110,7 @@ class _GamesList extends ConsumerWidget {
         for (final m in list) {
           final g = m.game;
           switch (matchPhase(
-              status: g.status,
-              kickoff: g.kickoff,
-              endTime: g.endTime,
-              now: now)) {
+              status: g.status, kickoff: g.kickoff, now: now)) {
             case MatchPhase.live:
               live.add(m);
             case MatchPhase.upcoming:
@@ -208,10 +205,7 @@ class _MatchTile extends StatelessWidget {
     final g = match.game;
     final df = DateFormat('EEE d MMM · HH:mm', localeCode);
     final isLive = matchPhase(
-            status: g.status,
-            kickoff: g.kickoff,
-            endTime: g.endTime,
-            now: DateTime.now()) ==
+            status: g.status, kickoff: g.kickoff, now: DateTime.now()) ==
         MatchPhase.live;
 
     void open() {

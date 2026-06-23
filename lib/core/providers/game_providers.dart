@@ -58,16 +58,23 @@ final myBidProvider =
   (ref, key) => GameService.myBidForGame(key.$1, key.$2),
 );
 
-/// Games my team posted.
+/// Games my team posted. Sweeps stale (unscored, >4h) games to 0–0 first so the
+/// Created list and standings reflect auto-finished results.
 final createdGamesProvider =
     FutureProvider.autoDispose.family<List<MatchGame>, String>(
-  (ref, teamId) => GameService.fetchCreatedGames(teamId),
+  (ref, teamId) async {
+    await GameService.autoCompleteStaleGames();
+    return GameService.fetchCreatedGames(teamId);
+  },
 );
 
 /// Games my team was picked to play.
 final joinedGamesProvider =
     FutureProvider.autoDispose.family<List<MatchGame>, String>(
-  (ref, teamId) => GameService.fetchJoinedGames(teamId),
+  (ref, teamId) async {
+    await GameService.autoCompleteStaleGames();
+    return GameService.fetchJoinedGames(teamId);
+  },
 );
 
 /// A matched game (both teams resolved).

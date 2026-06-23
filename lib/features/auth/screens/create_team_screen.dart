@@ -172,6 +172,7 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
     return OnboardingScaffold(
       title: t.createTeamTitle,
       subtitle: t.createTeamSubtitle,
+      backgroundAsset: 'assets/images/onboarding_team.png',
       bottom: CustomButton(
         label: t.createTeamBtn,
         icon: Icons.add_rounded,
