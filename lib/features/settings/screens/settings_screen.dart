@@ -13,7 +13,6 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
     final locale = ref.watch(localeProvider);
-    final themeMode = ref.watch(themeModeProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(t.settingsTitle)),
@@ -32,26 +31,6 @@ class SettingsScreen extends ConsumerWidget {
             selected: locale.languageCode == 'fr',
             onTap: () =>
                 ref.read(localeProvider.notifier).set(const Locale('fr')),
-          ),
-          const SizedBox(height: 20),
-          _section(t.theme),
-          _radioTile(
-            label: t.themeDark,
-            selected: themeMode == ThemeMode.dark,
-            onTap: () =>
-                ref.read(themeModeProvider.notifier).set(ThemeMode.dark),
-          ),
-          _radioTile(
-            label: t.themeLight,
-            selected: themeMode == ThemeMode.light,
-            onTap: () =>
-                ref.read(themeModeProvider.notifier).set(ThemeMode.light),
-          ),
-          _radioTile(
-            label: t.themeSystem,
-            selected: themeMode == ThemeMode.system,
-            onTap: () =>
-                ref.read(themeModeProvider.notifier).set(ThemeMode.system),
           ),
           const SizedBox(height: 28),
           OutlinedButton.icon(

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/providers/admin_providers.dart';
 import '../../../core/providers/game_providers.dart';
+import '../../../core/providers/notification_providers.dart';
 import '../../../core/providers/session_provider.dart';
 import '../../../core/services/admin_service.dart';
 import '../../../core/theme/app_colors.dart';
@@ -73,6 +74,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                       style:
                           AppTextStyles.headline(AppColors.darkTextPrimary)),
                 ),
+                const _NotificationBell(),
                 if (role == UserRole.captain)
                   FilledButton.icon(
                     style: FilledButton.styleFrom(
@@ -241,6 +243,25 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
           ),
         ),
       );
+}
+
+/// Bell icon with an unread-count badge, routing to the notifications screen.
+class _NotificationBell extends ConsumerWidget {
+  const _NotificationBell();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(unreadCountProvider).valueOrNull ?? 0;
+    return IconButton(
+      onPressed: () => context.pushNamed('notifications'),
+      icon: Badge(
+        isLabelVisible: unread > 0,
+        label: Text('$unread'),
+        backgroundColor: AppColors.red,
+        child: const Icon(Icons.notifications_rounded,
+            color: AppColors.darkTextPrimary),
+      ),
+    );
+  }
 }
 
 /// Shows the most recent active admin ad as a tappable banner.

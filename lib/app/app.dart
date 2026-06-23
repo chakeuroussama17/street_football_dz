@@ -91,15 +91,16 @@ class _StreetFootballAppState extends ConsumerState<StreetFootballApp> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
       title: 'Street Football DZ',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      // The app is a dark Gen-Z design; lock it to dark for now (light mode
+      // would need every screen re-themed).
+      theme: AppTheme.dark,
       darkTheme: AppTheme.dark,
-      themeMode: themeMode,
+      themeMode: ThemeMode.dark,
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

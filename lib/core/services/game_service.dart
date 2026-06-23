@@ -379,9 +379,17 @@ class GameService {
   }
 
   /// Host accepts a bid: the bidder becomes the opponent, the game is matched,
-  /// the chosen bid is accepted and the rest rejected. The opponent is notified.
+  /// the chosen bid is accepted and the rest rejected. The accepted team and
+  /// every declined team are notified.
   static Future<void> acceptBid(BidView chosen) async {
     final gameId = chosen.bid.gameId;
+    // Who else bid? (notify them they weren't picked)
+    final others = await _sb
+        .from('bids')
+        .select('bidder_user_id')
+        .eq('game_id', gameId)
+        .neq('id', chosen.bid.id);
+
     await _sb.from('games').update({
       'opponent_team_id': chosen.bid.bidderTeamId,
       'accepted_bid_id': chosen.bid.id,
@@ -395,19 +403,42 @@ class GameService {
         .update({'status': 'rejected'})
         .eq('game_id', gameId)
         .neq('id', chosen.bid.id);
+
     try {
       await _sb.rpc('notify_user', params: {
         'target_user': chosen.bid.bidderUserId,
         'n_type': 'bid_accepted',
         'n_title': 'You got the game! ⚽',
-        'n_body': 'Your request to play was accepted.',
+        'n_body': 'The host picked your team. Check the match details.',
         'n_data': {'game_id': gameId},
       });
+      for (final o in (others as List).cast<Map<String, dynamic>>()) {
+        await _sb.rpc('notify_user', params: {
+          'target_user': o['bidder_user_id'],
+          'n_type': 'bid_rejected',
+          'n_title': 'Not this time',
+          'n_body': 'The host chose another team for this game.',
+          'n_data': {'game_id': gameId},
+        });
+      }
     } catch (_) {}
   }
 
-  static Future<void> rejectBid(String bidId) async {
+  /// Host declines a single bid (and notifies that team).
+  static Future<void> rejectBid(String bidId,
+      {String? bidderUserId, String? gameId}) async {
     await _sb.from('bids').update({'status': 'rejected'}).eq('id', bidId);
+    if (bidderUserId != null) {
+      try {
+        await _sb.rpc('notify_user', params: {
+          'target_user': bidderUserId,
+          'n_type': 'bid_rejected',
+          'n_title': 'Request declined',
+          'n_body': 'The host declined your request for this game.',
+          'n_data': {'game_id': ?gameId},
+        });
+      } catch (_) {}
+    }
   }
 
   // ── Results + ratings ──────────────────────────────────────────────────────

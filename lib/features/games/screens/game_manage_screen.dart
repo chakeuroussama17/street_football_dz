@@ -177,7 +177,8 @@ class GameManageScreen extends ConsumerWidget {
   }
 
   Future<void> _decline(WidgetRef ref, BidView b) async {
-    await GameService.rejectBid(b.bid.id);
+    await GameService.rejectBid(b.bid.id,
+        bidderUserId: b.bid.bidderUserId, gameId: b.bid.gameId);
     ref.invalidate(gameBidsProvider(id));
   }
 

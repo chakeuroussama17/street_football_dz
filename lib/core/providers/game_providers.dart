@@ -33,16 +33,16 @@ class FeedFilters {
   int get hashCode => Object.hash(city, format, day);
 }
 
-/// The open-games feed for the given filters (excludes the viewer's own team).
+/// The open-games feed for the given filters. Shows every open game, including
+/// the viewer's own (the detail screen disables bidding on your own game).
 final feedProvider =
     FutureProvider.autoDispose.family<List<GameFeedItem>, FeedFilters>(
   (ref, filters) {
-    final myTeamId = ref.watch(myTeamIdProvider);
+    ref.watch(myTeamIdProvider); // refresh feed when the user's team changes
     return GameService.fetchFeed(
       city: filters.city,
       format: filters.format,
       day: filters.day,
-      excludeTeamId: myTeamId,
     );
   },
 );
