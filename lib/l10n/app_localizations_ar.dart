@@ -24,6 +24,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get iHaveAccount => 'لديّ حساب بالفعل';
 
   @override
+  String get skip => 'تخطّي';
+
+  @override
+  String get onboard2Title => 'كابتن أو لاعب';
+
+  @override
+  String get onboard2Body =>
+      'أنشئ فريقك الخاص وانشر المباريات، أو انضمّ بسرعة برمز فريق صديقك.';
+
+  @override
+  String get onboard3Title => 'انتصروا كفريق';
+
+  @override
+  String get onboard3Body =>
+      'سجّل النتائج، تسلّق الدوري الجزائري، وابنِ سمعة فريقك.';
+
+  @override
   String get continueLabel => 'متابعة';
 
   @override

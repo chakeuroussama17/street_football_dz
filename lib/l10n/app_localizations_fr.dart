@@ -25,6 +25,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get iHaveAccount => 'J\'ai déjà un compte';
 
   @override
+  String get skip => 'Passer';
+
+  @override
+  String get onboard2Title => 'Capitaine ou joueur';
+
+  @override
+  String get onboard2Body =>
+      'Crée ta propre équipe et publie des matchs, ou rejoins tes amis avec un code d\'équipe.';
+
+  @override
+  String get onboard3Title => 'Gagnez en équipe';
+
+  @override
+  String get onboard3Body =>
+      'Enregistre les résultats, grimpe dans le championnat et bâtis la réputation de ton équipe.';
+
+  @override
   String get continueLabel => 'Continuer';
 
   @override

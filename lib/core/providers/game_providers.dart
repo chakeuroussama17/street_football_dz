@@ -37,8 +37,10 @@ class FeedFilters {
 /// the viewer's own (the detail screen disables bidding on your own game).
 final feedProvider =
     FutureProvider.autoDispose.family<List<GameFeedItem>, FeedFilters>(
-  (ref, filters) {
+  (ref, filters) async {
     ref.watch(myTeamIdProvider); // refresh feed when the user's team changes
+    // Clear out expired open games (and auto-finish stale matches) first.
+    await GameService.autoCompleteStaleGames();
     return GameService.fetchFeed(
       city: filters.city,
       format: filters.format,

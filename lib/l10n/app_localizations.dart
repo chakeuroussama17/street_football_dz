@@ -130,6 +130,36 @@ abstract class AppLocalizations {
   /// **'I already have an account'**
   String get iHaveAccount;
 
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @onboard2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Captain or player'**
+  String get onboard2Title;
+
+  /// No description provided for @onboard2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your own team and post games, or jump in with a friend\'s team code.'**
+  String get onboard2Body;
+
+  /// No description provided for @onboard3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Win as a team'**
+  String get onboard3Title;
+
+  /// No description provided for @onboard3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Record results, climb the Algerian League and build your team\'s reputation.'**
+  String get onboard3Body;
+
   /// No description provided for @continueLabel.
   ///
   /// In en, this message translates to:

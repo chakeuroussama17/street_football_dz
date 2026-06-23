@@ -1,13 +1,17 @@
 -- ════════════════════════════════════════════════════════════════════════════
--- Street Football DZ — auto-finish stale games
+-- Street Football DZ — sweep stale games
 -- Run AFTER schema.sql + notifications.sql. Idempotent: safe to re-run.
 --
--- If the host never records a score, the game is finalised as a 0–0 draw 4 hours
--- after kick-off (both teams get 1 league point) and moves to "Finished".
--- Two ways it runs:
---   1. pg_cron, every 15 min (auto-scheduled below if the extension is enabled).
---   2. The app calls public.auto_complete_stale_games() whenever My Games loads,
---      so it works even on projects without pg_cron.
+-- Two things happen here, both triggered by kick-off time passing:
+--   1. A matched game still unscored 4 hours after kick-off is finalised as a
+--      0–0 draw (1 league point each) and moves to "Finished".
+--   2. An OPEN game whose kick-off has passed with no opponent picked (nobody
+--      joined) is deleted — its bids go with it (FK cascade).
+--
+-- How it runs:
+--   • pg_cron, every 15 min (auto-scheduled below if the extension is enabled).
+--   • The app calls public.auto_complete_stale_games() when the feed / My Games
+--     load, so it works even on projects without pg_cron.
 -- ════════════════════════════════════════════════════════════════════════════
 
 create or replace function public.auto_complete_stale_games()
@@ -21,6 +25,7 @@ declare
   n integer := 0;
   opp_captain uuid;
 begin
+  -- ── 1. Auto-finish matched-but-unscored games as 0–0 after 4 hours ─────────
   for r in
     with updated as (
       update public.games g
@@ -36,31 +41,51 @@ begin
     select * from updated
   loop
     n := n + 1;
-
-    -- Notify the host captain.
     perform public.notify_user(
-      r.host_captain_id,
-      'result_auto',
-      'Game auto-finished',
+      r.host_captain_id, 'result_auto', 'Game auto-finished',
       'No score was entered in time, so it was recorded as 0–0.',
-      jsonb_build_object('game_id', r.id)
-    );
+      jsonb_build_object('game_id', r.id));
 
-    -- Notify the opponent's captain (if the team still exists).
     if r.opponent_team_id is not null then
       select captain_id into opp_captain
         from public.teams where id = r.opponent_team_id;
       if opp_captain is not null then
         perform public.notify_user(
-          opp_captain,
-          'result_auto',
-          'Game auto-finished',
+          opp_captain, 'result_auto', 'Game auto-finished',
           'No score was entered in time, so it was recorded as 0–0.',
-          jsonb_build_object('game_id', r.id)
-        );
+          jsonb_build_object('game_id', r.id));
       end if;
     end if;
   end loop;
+
+  -- ── 2. Delete open games nobody joined once kick-off has passed ────────────
+  -- Tell the host their game expired.
+  for r in
+    select id, host_captain_id from public.games
+     where status = 'open' and kickoff < now()
+  loop
+    perform public.notify_user(
+      r.host_captain_id, 'game_expired', 'Game expired',
+      'No team was picked before kick-off, so your game was removed.',
+      jsonb_build_object('game_id', r.id));
+  end loop;
+
+  -- Tell anyone who had requested to play that the game is gone.
+  for r in
+    select b.bidder_user_id, b.game_id
+      from public.bids b
+      join public.games g on g.id = b.game_id
+     where g.status = 'open' and g.kickoff < now()
+  loop
+    perform public.notify_user(
+      r.bidder_user_id, 'game_removed', 'Game removed',
+      'A game you requested was removed because the host didn''t pick a team in time.',
+      jsonb_build_object('game_id', r.game_id));
+  end loop;
+
+  -- Remove them (bids cascade-delete via the FK).
+  delete from public.games
+   where status = 'open' and kickoff < now();
 
   return n;
 end;

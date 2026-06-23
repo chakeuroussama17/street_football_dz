@@ -25,6 +25,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get iHaveAccount => 'I already have an account';
 
   @override
+  String get skip => 'Skip';
+
+  @override
+  String get onboard2Title => 'Captain or player';
+
+  @override
+  String get onboard2Body =>
+      'Create your own team and post games, or jump in with a friend\'s team code.';
+
+  @override
+  String get onboard3Title => 'Win as a team';
+
+  @override
+  String get onboard3Body =>
+      'Record results, climb the Algerian League and build your team\'s reputation.';
+
+  @override
   String get continueLabel => 'Continue';
 
   @override
