@@ -733,6 +733,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get resultFinal => 'Ce résultat est définitif.';
 
   @override
+  String scoreOpensIn(int minutes) {
+    return 'La saisie du score ouvre ~$minutes min après le coup d\'envoi.';
+  }
+
+  @override
+  String get sectionLive => 'En direct';
+
+  @override
+  String get sectionUpcoming => 'À venir';
+
+  @override
+  String get sectionFinished => 'Terminés';
+
+  @override
+  String get liveTag => 'DIRECT';
+
+  @override
   String get reviewComment => 'Commentaire (optionnel)';
 
   @override

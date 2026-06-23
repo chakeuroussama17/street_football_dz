@@ -722,6 +722,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resultFinal => 'هذه النتيجة نهائية.';
 
   @override
+  String scoreOpensIn(int minutes) {
+    return 'يفتح إدخال النتيجة بعد ~$minutes دقيقة من انطلاق المباراة.';
+  }
+
+  @override
+  String get sectionLive => 'مباشرة الآن';
+
+  @override
+  String get sectionUpcoming => 'القادمة';
+
+  @override
+  String get sectionFinished => 'المنتهية';
+
+  @override
+  String get liveTag => 'مباشر';
+
+  @override
   String get reviewComment => 'تعليق (اختياري)';
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_providers.dart';
@@ -111,26 +112,39 @@ class _JoinTeamScreenState extends ConsumerState<JoinTeamScreen> {
           onChanged: (_) {
             if (_found != null) setState(() => _found = null);
           },
-        ),
+        )
+            .animate()
+            .fadeIn(duration: 500.ms)
+            .slideY(begin: 0.1),
         if (_found != null) ...[
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: AppColors.darkCard,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.green.withValues(alpha: 0.4)),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: AppColors.green.withValues(alpha: 0.5),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.green.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                TeamAvatar(name: _found!.name, imageUrl: _found!.logoUrl, size: 52),
-                const SizedBox(width: 14),
+                TeamAvatar(name: _found!.name, imageUrl: _found!.logoUrl, size: 56),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_found!.name,
-                          style: AppTextStyles.title(
+                          style: AppTextStyles.headline(
                               AppColors.darkTextPrimary)),
                       if ((_found!.city ?? '').isNotEmpty)
                         Text(_found!.city!,
@@ -139,10 +153,14 @@ class _JoinTeamScreenState extends ConsumerState<JoinTeamScreen> {
                     ],
                   ),
                 ),
-                const Icon(Icons.verified_rounded, color: AppColors.green),
+                Icon(Icons.verified_rounded,
+                    color: AppColors.green, size: 24),
               ],
             ),
-          ),
+          )
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: 0.15),
         ],
       ],
     );

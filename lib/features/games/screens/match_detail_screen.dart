@@ -187,11 +187,12 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
   Widget _hostResultSection(AppLocalizations t, MatchGame m) {
     final g = m.game;
     final now = DateTime.now();
-    final eligible =
-        canEnterScore(status: g.status, scoredAt: g.scoredAt, now: now);
+    final eligible = canEnterScore(
+        status: g.status, kickoff: g.kickoff, scoredAt: g.scoredAt, now: now);
 
-    // Locked: scored and the 10-minute edit window has passed.
+    // Not eligible yet, or locked forever.
     if (!eligible) {
+      // Locked: scored and the 10-minute edit window has passed.
       if (g.hasScore) {
         return _box(Row(children: [
           const Icon(Icons.lock_rounded,
@@ -199,6 +200,18 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
           const SizedBox(width: 8),
           Expanded(
               child: Text(t.resultFinal,
+                  style: AppTextStyles.body(AppColors.darkTextSecondary))),
+        ]));
+      }
+      // Matched but the match hasn't started yet → tell the host when scoring
+      // opens (kick-off + 5 minutes).
+      if (g.status == 'matched') {
+        final mins = minutesUntilScoreOpens(g.kickoff, now);
+        return _box(Row(children: [
+          const Icon(Icons.timer_outlined, color: AppColors.gold, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+              child: Text(t.scoreOpensIn(mins),
                   style: AppTextStyles.body(AppColors.darkTextSecondary))),
         ]));
       }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -178,19 +179,30 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
         onPressed: _loading ? null : _create,
       ),
       children: [
-        Center(child: _logoPicker(t)),
+        Center(child: _logoPicker(t))
+            .animate()
+            .fadeIn(duration: 500.ms)
+            .slideY(begin: 0.1),
         const SizedBox(height: 24),
-        CustomInput(label: t.teamName, controller: _name),
+        CustomInput(label: t.teamName, controller: _name)
+            .animate(delay: 200.ms)
+            .fadeIn()
+            .slideY(begin: 0.1),
         const SizedBox(height: 16),
         WilayaDropdown(
           label: t.cityWilaya,
           hint: t.selectCity,
           value: _city,
           onChanged: (v) => setState(() => _city = v),
-        ),
+        )
+            .animate(delay: 300.ms)
+            .fadeIn()
+            .slideY(begin: 0.1),
         const SizedBox(height: 16),
         Text(t.ageRangeOptional,
-            style: AppTextStyles.label(AppColors.darkTextSecondary)),
+            style: AppTextStyles.label(AppColors.darkTextSecondary))
+            .animate(delay: 400.ms)
+            .fadeIn(),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -201,7 +213,10 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 2,
-              ),
+              )
+                  .animate(delay: 450.ms)
+                  .fadeIn()
+                  .slideX(begin: -0.1),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -211,7 +226,10 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 2,
-              ),
+              )
+                  .animate(delay: 500.ms)
+                  .fadeIn()
+                  .slideX(begin: 0.1),
             ),
           ],
         ),
@@ -221,7 +239,10 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
           controller: _details,
           maxLines: 3,
           maxLength: 200,
-        ),
+        )
+            .animate(delay: 550.ms)
+            .fadeIn()
+            .slideY(begin: 0.1),
       ],
     );
   }
@@ -232,25 +253,49 @@ class _CreateTeamScreenState extends ConsumerState<CreateTeamScreen> {
       child: Column(
         children: [
           Container(
-            width: 104,
-            height: 104,
+            width: 128,
+            height: 128,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.darkCard,
-              border: Border.all(color: AppColors.darkBorder),
+              border: Border.all(
+                color: (_logoBytes != null ? AppColors.green : AppColors.darkBorder).withValues(alpha: 0.6),
+                width: 2,
+              ),
               image: _logoBytes != null
                   ? DecorationImage(
                       image: MemoryImage(_logoBytes!), fit: BoxFit.cover)
                   : null,
+              boxShadow: _logoBytes != null
+                  ? [
+                      BoxShadow(
+                        color: AppColors.green.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : null,
             ),
             child: _logoBytes == null
-                ? const Icon(Icons.add_a_photo_rounded,
-                    color: AppColors.darkTextMuted, size: 30)
+                ? Icon(
+                    Icons.add_a_photo_rounded,
+                    color: AppColors.darkTextMuted,
+                    size: 40,
+                  ).animate()
+                    .fadeIn(duration: 500.ms)
+                    .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1))
                 : null,
+          )
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
+          const SizedBox(height: 12),
+          Text(
+            _logoBytes == null ? t.addLogo : t.teamLogoOptional,
+            style: AppTextStyles.label(
+              _logoBytes != null ? AppColors.green : AppColors.darkTextSecondary,
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(t.teamLogoOptional,
-              style: AppTextStyles.label(AppColors.darkTextMuted)),
         ],
       ),
     );

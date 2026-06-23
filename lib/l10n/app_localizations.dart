@@ -1474,6 +1474,36 @@ abstract class AppLocalizations {
   /// **'This result is final.'**
   String get resultFinal;
 
+  /// No description provided for @scoreOpensIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Score entry opens ~{minutes} min after kick-off.'**
+  String scoreOpensIn(int minutes);
+
+  /// No description provided for @sectionLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live now'**
+  String get sectionLive;
+
+  /// No description provided for @sectionUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get sectionUpcoming;
+
+  /// No description provided for @sectionFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get sectionFinished;
+
+  /// No description provided for @liveTag.
+  ///
+  /// In en, this message translates to:
+  /// **'LIVE'**
+  String get liveTag;
+
   /// No description provided for @reviewComment.
   ///
   /// In en, this message translates to:

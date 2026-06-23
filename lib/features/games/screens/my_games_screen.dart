@@ -7,6 +7,7 @@ import '../../../core/providers/session_provider.dart';
 import '../../../core/services/game_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/match_rules.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../../core/widgets/team_avatar.dart';
 import '../../../l10n/app_localizations.dart';
@@ -100,14 +101,97 @@ class _GamesList extends ConsumerWidget {
             ),
           );
         }
-        return ListView.separated(
+
+        // Split into Live now / Upcoming / Finished, each newest-first by kickoff.
+        final now = DateTime.now();
+        final live = <MatchGame>[];
+        final upcoming = <MatchGame>[];
+        final finished = <MatchGame>[];
+        for (final m in list) {
+          final g = m.game;
+          switch (matchPhase(
+              status: g.status,
+              kickoff: g.kickoff,
+              endTime: g.endTime,
+              now: now)) {
+            case MatchPhase.live:
+              live.add(m);
+            case MatchPhase.upcoming:
+              upcoming.add(m);
+            case MatchPhase.finished:
+              finished.add(m);
+          }
+        }
+        // Upcoming reads best soonest-first; the others newest-first.
+        upcoming.sort((a, b) => a.game.kickoff.compareTo(b.game.kickoff));
+
+        final children = <Widget>[];
+        void section(String title, List<MatchGame> games, {bool live = false}) {
+          if (games.isEmpty) return;
+          children.add(_SectionHeader(title: title, count: games.length, live: live));
+          for (final m in games) {
+            children.add(Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _MatchTile(match: m, isCreated: isCreated),
+            ));
+          }
+        }
+
+        section(t.sectionLive, live, live: true);
+        section(t.sectionUpcoming, upcoming);
+        section(t.sectionFinished, finished);
+
+        return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          itemCount: list.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 10),
-          itemBuilder: (_, i) =>
-              _MatchTile(match: list[i], isCreated: isCreated),
+          children: children,
         );
       },
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final int count;
+  final bool live;
+  const _SectionHeader(
+      {required this.title, required this.count, this.live = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = live ? AppColors.red : AppColors.darkTextSecondary;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 8, 2, 10),
+      child: Row(
+        children: [
+          if (live) ...[
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                  color: AppColors.red, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Text(title.toUpperCase(),
+              style: AppTextStyles.label(color)
+                  .copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w700)),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text('$count',
+                style: AppTextStyles.label(color)
+                    .copyWith(fontWeight: FontWeight.w700)),
+          ),
+          const Expanded(
+              child: Divider(
+                  color: AppColors.darkBorder, indent: 12, endIndent: 0)),
+        ],
+      ),
     );
   }
 }
@@ -123,6 +207,12 @@ class _MatchTile extends StatelessWidget {
     final localeCode = Localizations.localeOf(context).languageCode;
     final g = match.game;
     final df = DateFormat('EEE d MMM · HH:mm', localeCode);
+    final isLive = matchPhase(
+            status: g.status,
+            kickoff: g.kickoff,
+            endTime: g.endTime,
+            now: DateTime.now()) ==
+        MatchPhase.live;
 
     void open() {
       if (isCreated && g.isOpen) {
@@ -140,7 +230,12 @@ class _MatchTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.darkCard,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.darkBorder),
+          border: Border.all(
+            color: isLive
+                ? AppColors.red.withValues(alpha: 0.55)
+                : AppColors.darkBorder,
+            width: isLive ? 1.5 : 1,
+          ),
         ),
         child: Column(
           children: [
@@ -152,6 +247,10 @@ class _MatchTile extends StatelessWidget {
                 Text('· ${t.asideLabel(g.format)}',
                     style: AppTextStyles.label(AppColors.darkTextMuted)),
                 const Spacer(),
+                if (isLive) ...[
+                  _LiveTag(label: t.liveTag),
+                  const SizedBox(width: 6),
+                ],
                 StatusChip(status: g.status),
               ],
             ),
@@ -199,4 +298,37 @@ class _MatchTile extends StatelessWidget {
           ],
         ),
       );
+}
+
+/// Small red "LIVE" pill with a dot — shown on games being played right now.
+class _LiveTag extends StatelessWidget {
+  final String label;
+  const _LiveTag({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.red.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.red.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration:
+                const BoxDecoration(color: AppColors.red, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(label,
+              style: AppTextStyles.label(AppColors.red)
+                  .copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+        ],
+      ),
+    );
+  }
 }

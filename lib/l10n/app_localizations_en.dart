@@ -727,6 +727,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resultFinal => 'This result is final.';
 
   @override
+  String scoreOpensIn(int minutes) {
+    return 'Score entry opens ~$minutes min after kick-off.';
+  }
+
+  @override
+  String get sectionLive => 'Live now';
+
+  @override
+  String get sectionUpcoming => 'Upcoming';
+
+  @override
+  String get sectionFinished => 'Finished';
+
+  @override
+  String get liveTag => 'LIVE';
+
+  @override
   String get reviewComment => 'Comment (optional)';
 
   @override

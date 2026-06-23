@@ -6,9 +6,8 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Gen-Z Algerian welcome/hero. Arabic-first (RTL handled by MaterialApp),
-/// with a bold flag-coloured gradient backdrop. Swap in a real street-football
-/// photo later by dropping it into assets/images and layering it behind.
+/// Enhanced Gen-Z Algerian welcome screen (Picture 1: street football action).
+/// Dark overlay + brand gradient accent with animated buttons.
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -19,7 +18,21 @@ class WelcomeScreen extends StatelessWidget {
       backgroundColor: AppColors.darkBg,
       body: Stack(
         children: [
-          // Vivid flag gradient glow, top-trailing.
+          // Dark overlay (to darken picture if used, or just dark bg)
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.darkBg,
+                  AppColors.darkBg.withValues(alpha: 0.9),
+                ],
+              ),
+            ),
+          ),
+
+          // Animated accent glows (brand colors)
           Positioned(
             top: -120,
             right: -80,
@@ -30,45 +43,70 @@ class WelcomeScreen extends StatelessWidget {
             left: -90,
             child: _glow(AppColors.red, 340),
           ),
-          // Foreground content.
+
+          // Foreground content (centered, bold)
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Spacer(flex: 2),
+                  const Spacer(flex: 1),
+
+                  // Logo badge
                   _logoBadge()
                       .animate()
-                      .fadeIn(duration: 500.ms)
-                      .scale(begin: const Offset(0.85, 0.85)),
-                  const SizedBox(height: 28),
-                  Text(
-                    t.appName,
-                    style: AppTextStyles.label(AppColors.gold),
-                  ).animate(delay: 150.ms).fadeIn().slideX(begin: 0.1),
-                  const SizedBox(height: 8),
+                      .fadeIn(duration: 600.ms)
+                      .scale(
+                          begin: const Offset(0.8, 0.8),
+                          end: const Offset(1, 1)),
+
+                  const SizedBox(height: 40),
+
+                  // Title + subtitle
                   Text(
                     t.welcomeTitle,
+                    textAlign: TextAlign.center,
                     style: AppTextStyles.display(AppColors.darkTextPrimary),
-                  ).animate(delay: 250.ms).fadeIn().slideY(begin: 0.15),
+                  )
+                      .animate(delay: 200.ms)
+                      .fadeIn()
+                      .slideY(begin: 0.2),
+
                   const SizedBox(height: 16),
+
                   Text(
                     t.welcomeSubtitle,
+                    textAlign: TextAlign.center,
                     style: AppTextStyles.body(AppColors.darkTextSecondary),
-                  ).animate(delay: 400.ms).fadeIn(),
-                  const Spacer(flex: 3),
+                  )
+                      .animate(delay: 350.ms)
+                      .fadeIn()
+                      .slideY(begin: 0.15),
+
+                  const Spacer(flex: 2),
+
+                  // CTA buttons with staggered animation
                   CustomButton(
                     label: t.getStarted,
                     icon: Icons.sports_soccer,
                     onPressed: () => context.pushNamed('register'),
-                  ).animate(delay: 550.ms).fadeIn().slideY(begin: 0.3),
+                  )
+                      .animate(delay: 500.ms)
+                      .fadeIn()
+                      .slideY(begin: 0.3),
+
                   const SizedBox(height: 12),
+
                   CustomButton(
                     label: t.iHaveAccount,
                     variant: ButtonVariant.ghost,
                     onPressed: () => context.pushNamed('login'),
-                  ).animate(delay: 650.ms).fadeIn(),
+                  )
+                      .animate(delay: 600.ms)
+                      .fadeIn()
+                      .slideY(begin: 0.3),
+
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -84,24 +122,31 @@ class WelcomeScreen extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [color.withValues(alpha: 0.45), Colors.transparent],
+            colors: [color.withValues(alpha: 0.5), Colors.transparent],
           ),
         ),
       );
 
   Widget _logoBadge() => Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: AppColors.brandGradientHot,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(26),
           boxShadow: [
             BoxShadow(
-              color: AppColors.green.withValues(alpha: 0.4),
+              color: AppColors.green.withValues(alpha: 0.5),
+              blurRadius: 40,
+              spreadRadius: 2,
+              offset: const Offset(0, 15),
+            ),
+            BoxShadow(
+              color: AppColors.red.withValues(alpha: 0.3),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: const Icon(Icons.sports_soccer, color: Colors.white, size: 40),
+        child: const Icon(Icons.sports_soccer,
+            color: Colors.white, size: 48),
       );
 }

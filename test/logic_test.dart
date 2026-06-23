@@ -36,38 +36,100 @@ void main() {
   });
 
   group('canEnterScore (host)', () {
-    final now = DateTime(2030, 1, 1, 12);
-    test('allowed once matched (no score yet)', () {
-      expect(canEnterScore(status: 'matched', scoredAt: null, now: now),
+    final kickoff = DateTime(2030, 1, 1, 12);
+    // 6 minutes after kickoff → past the 5-minute open delay.
+    final afterStart = kickoff.add(const Duration(minutes: 6));
+    test('blocked before kick-off + 5 min', () {
+      expect(
+          canEnterScore(
+              status: 'matched',
+              kickoff: kickoff,
+              scoredAt: null,
+              now: kickoff.add(const Duration(minutes: 4))),
+          isFalse);
+    });
+    test('allowed once the match has started (kickoff + 5 min)', () {
+      expect(
+          canEnterScore(
+              status: 'matched',
+              kickoff: kickoff,
+              scoredAt: null,
+              now: afterStart),
           isTrue);
     });
     test('editable within 10 minutes of saving', () {
       expect(
           canEnterScore(
               status: 'completed',
-              scoredAt: now.subtract(const Duration(minutes: 5)),
-              now: now),
+              kickoff: kickoff,
+              scoredAt: afterStart.subtract(const Duration(minutes: 5)),
+              now: afterStart),
           isTrue);
     });
     test('locked after 10 minutes', () {
       expect(
           canEnterScore(
               status: 'completed',
-              scoredAt: now.subtract(const Duration(minutes: 11)),
-              now: now),
+              kickoff: kickoff,
+              scoredAt: afterStart.subtract(const Duration(minutes: 11)),
+              now: afterStart),
           isFalse);
     });
     test('blocked for open/cancelled games', () {
-      expect(canEnterScore(status: 'open', scoredAt: null, now: now), isFalse);
-      expect(canEnterScore(status: 'cancelled', scoredAt: null, now: now),
+      expect(
+          canEnterScore(
+              status: 'open', kickoff: kickoff, scoredAt: null, now: afterStart),
           isFalse);
+      expect(
+          canEnterScore(
+              status: 'cancelled',
+              kickoff: kickoff,
+              scoredAt: null,
+              now: afterStart),
+          isFalse);
+    });
+    test('minutesUntilScoreOpens counts down and floors at 0', () {
+      expect(
+          minutesUntilScoreOpens(kickoff, kickoff.add(const Duration(minutes: 6))),
+          0);
+      expect(minutesUntilScoreOpens(kickoff, kickoff) > 0, isTrue);
     });
     test('editMinutesLeft counts down and floors at 0', () {
       expect(
-          editMinutesLeft(now.subtract(const Duration(minutes: 11)), now), 0);
+          editMinutesLeft(
+              afterStart.subtract(const Duration(minutes: 11)), afterStart),
+          0);
       expect(
-          editMinutesLeft(now.subtract(const Duration(minutes: 3)), now) > 0,
+          editMinutesLeft(
+                  afterStart.subtract(const Duration(minutes: 3)), afterStart) >
+              0,
           isTrue);
+    });
+  });
+
+  group('matchPhase (My Games sections)', () {
+    final kickoff = DateTime(2030, 1, 1, 20);
+    final endTime = kickoff.add(const Duration(minutes: 90));
+    MatchPhase phase(String status, DateTime now) => matchPhase(
+        status: status, kickoff: kickoff, endTime: endTime, now: now);
+
+    test('before kick-off → upcoming', () {
+      expect(phase('matched', kickoff.subtract(const Duration(hours: 1))),
+          MatchPhase.upcoming);
+    });
+    test('during the match window → live', () {
+      expect(phase('matched', kickoff.add(const Duration(minutes: 30))),
+          MatchPhase.live);
+    });
+    test('after the end time → finished', () {
+      expect(phase('matched', endTime.add(const Duration(minutes: 1))),
+          MatchPhase.finished);
+    });
+    test('completed / cancelled are always finished', () {
+      expect(phase('completed', kickoff.subtract(const Duration(hours: 1))),
+          MatchPhase.finished);
+      expect(phase('cancelled', kickoff.add(const Duration(minutes: 30))),
+          MatchPhase.finished);
     });
   });
 
