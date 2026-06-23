@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -286,37 +287,77 @@ class _AdBanner extends ConsumerWidget {
           }
         },
         borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: AppColors.brandGradient,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.campaign_rounded, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(ad.title,
-                        style: AppTextStyles.title(Colors.white)),
-                    if ((ad.body ?? '').isNotEmpty)
-                      Text(ad.body!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.label(Colors.white)),
-                  ],
-                ),
-              ),
-              if ((ad.link ?? '').isNotEmpty)
-                const Icon(Icons.open_in_new_rounded,
-                    color: Colors.white, size: 18),
-            ],
-          ),
-        ),
+        child: (ad.imageUrl ?? '').isNotEmpty
+            ? _imageBanner(ad)
+            : _textBanner(ad),
       ),
     );
   }
+
+  Widget _textBanner(Ad ad) => Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: AppColors.brandGradient,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.campaign_rounded, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(ad.title, style: AppTextStyles.title(Colors.white)),
+                  if ((ad.body ?? '').isNotEmpty)
+                    Text(ad.body!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.label(Colors.white)),
+                ],
+              ),
+            ),
+            if ((ad.link ?? '').isNotEmpty)
+              const Icon(Icons.open_in_new_rounded,
+                  color: Colors.white, size: 18),
+          ],
+        ),
+      );
+
+  Widget _imageBanner(Ad ad) => SizedBox(
+        height: 140,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CachedNetworkImage(imageUrl: ad.imageUrl!, fit: BoxFit.cover),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Color(0xCC000000)],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 14,
+              right: 14,
+              bottom: 12,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(ad.title, style: AppTextStyles.title(Colors.white)),
+                  if ((ad.body ?? '').isNotEmpty)
+                    Text(ad.body!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.label(Colors.white)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
 }

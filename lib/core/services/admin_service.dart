@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_service.dart';
 
@@ -7,12 +8,14 @@ class Ad {
   final String title;
   final String? body;
   final String? link;
+  final String? imageUrl;
   final bool active;
   const Ad({
     required this.id,
     required this.title,
     this.body,
     this.link,
+    this.imageUrl,
     required this.active,
   });
 
@@ -21,6 +24,7 @@ class Ad {
         title: (r['title'] ?? '') as String,
         body: r['body'] as String?,
         link: r['link'] as String?,
+        imageUrl: r['image_url'] as String?,
         active: (r['active'] ?? true) as bool,
       );
 }
@@ -107,12 +111,14 @@ class AdminService {
     required String title,
     String? body,
     String? link,
+    String? imageUrl,
     required bool active,
   }) async {
     final data = {
       'title': title,
       'body': body,
       'link': link,
+      'image_url': imageUrl,
       'active': active,
     };
     if (id == null) {
@@ -120,6 +126,19 @@ class AdminService {
     } else {
       await _sb.from('ads').update(data).eq('id', id);
     }
+  }
+
+  /// Uploads a promo image to the ad-images bucket and returns its public URL.
+  static Future<String> uploadAdImage(Uint8List bytes, String ext) async {
+    final uid = SupabaseService.userId;
+    if (uid == null) throw Exception('Not signed in');
+    final path = '$uid/ad_${DateTime.now().millisecondsSinceEpoch}.$ext';
+    await _sb.storage.from('ad-images').uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(upsert: true, contentType: 'image/$ext'),
+        );
+    return _sb.storage.from('ad-images').getPublicUrl(path);
   }
 
   static Future<void> deleteAd(String id) async {

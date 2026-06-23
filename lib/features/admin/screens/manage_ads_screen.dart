@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/providers/admin_providers.dart';
 import '../../../core/services/admin_service.dart';
 import '../../../core/theme/app_colors.dart';
@@ -55,6 +58,18 @@ class ManageAdsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if ((ad.imageUrl ?? '').isNotEmpty) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CachedNetworkImage(
+                          imageUrl: ad.imageUrl!,
+                          height: 120,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                     Row(
                       children: [
                         Expanded(
@@ -121,6 +136,9 @@ class ManageAdsScreen extends ConsumerWidget {
     final body = TextEditingController(text: ad?.body ?? '');
     final link = TextEditingController(text: ad?.link ?? '');
     var active = ad?.active ?? true;
+    Uint8List? imageBytes;
+    var imageExt = 'jpg';
+    final existingImage = ad?.imageUrl;
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -132,48 +150,99 @@ class ManageAdsScreen extends ConsumerWidget {
         builder: (ctx, setLocal) => Padding(
           padding: EdgeInsets.fromLTRB(
               20, 18, 20, 18 + MediaQuery.of(ctx).viewInsets.bottom),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(ad == null ? t.addAd : t.edit,
-                  style: AppTextStyles.headline(AppColors.darkTextPrimary)),
-              const SizedBox(height: 16),
-              CustomInput(label: t.adTitleField, controller: title),
-              const SizedBox(height: 12),
-              CustomInput(
-                  label: t.adBodyField, controller: body, maxLines: 3),
-              const SizedBox(height: 12),
-              CustomInput(
-                  label: t.adLinkField,
-                  controller: link,
-                  keyboardType: TextInputType.url),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                activeThumbColor: AppColors.green,
-                title: Text(t.adActive,
-                    style: AppTextStyles.body(AppColors.darkTextPrimary)),
-                value: active,
-                onChanged: (v) => setLocal(() => active = v),
-              ),
-              const SizedBox(height: 12),
-              CustomButton(
-                label: t.save,
-                onPressed: () => Navigator.pop(ctx, true),
-              ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(ad == null ? t.addAd : t.edit,
+                    style: AppTextStyles.headline(AppColors.darkTextPrimary)),
+                const SizedBox(height: 16),
+                // Promo image picker.
+                GestureDetector(
+                  onTap: () async {
+                    final x = await ImagePicker().pickImage(
+                        source: ImageSource.gallery,
+                        maxWidth: 1280,
+                        imageQuality: 80);
+                    if (x == null) return;
+                    final bytes = await x.readAsBytes();
+                    setLocal(() {
+                      imageBytes = bytes;
+                      imageExt = x.path.split('.').last.toLowerCase();
+                      if (imageExt == 'jpeg') imageExt = 'jpg';
+                    });
+                  },
+                  child: Container(
+                    height: 130,
+                    width: double.infinity,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    alignment: Alignment.center,
+                    child: imageBytes != null
+                        ? Image.memory(imageBytes!, fit: BoxFit.cover)
+                        : (existingImage != null && existingImage.isNotEmpty)
+                            ? CachedNetworkImage(
+                                imageUrl: existingImage, fit: BoxFit.cover)
+                            : Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.add_photo_alternate_rounded,
+                                      color: AppColors.darkTextMuted, size: 30),
+                                  const SizedBox(height: 6),
+                                  Text(t.addPhoto,
+                                      style: AppTextStyles.label(
+                                          AppColors.darkTextMuted)),
+                                ],
+                              ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                CustomInput(label: t.adTitleField, controller: title),
+                const SizedBox(height: 12),
+                CustomInput(
+                    label: t.adBodyField, controller: body, maxLines: 3),
+                const SizedBox(height: 12),
+                CustomInput(
+                    label: t.adLinkField,
+                    controller: link,
+                    keyboardType: TextInputType.url),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  activeThumbColor: AppColors.green,
+                  title: Text(t.adActive,
+                      style: AppTextStyles.body(AppColors.darkTextPrimary)),
+                  value: active,
+                  onChanged: (v) => setLocal(() => active = v),
+                ),
+                const SizedBox(height: 12),
+                CustomButton(
+                  label: t.save,
+                  onPressed: () => Navigator.pop(ctx, true),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
 
     if (saved == true && title.text.trim().isNotEmpty) {
+      String? imageUrl = existingImage;
+      if (imageBytes != null) {
+        imageUrl = await AdminService.uploadAdImage(imageBytes!, imageExt);
+      }
       await AdminService.saveAd(
         id: ad?.id,
         title: title.text.trim(),
         body: body.text.trim().isEmpty ? null : body.text.trim(),
         link: link.text.trim().isEmpty ? null : link.text.trim(),
+        imageUrl: imageUrl,
         active: active,
       );
       ref.invalidate(adsProvider);

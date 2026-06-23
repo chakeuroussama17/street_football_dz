@@ -24,9 +24,13 @@ create table if not exists public.ads (
   title      text not null,
   body       text,
   link       text,
+  image_url  text,
   active     boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+-- For projects created before image_url existed.
+alter table public.ads add column if not exists image_url text;
 
 alter table public.ads enable row level security;
 
@@ -37,3 +41,27 @@ create policy ads_select on public.ads for select to authenticated using (true);
 -- Only the admin can create / edit / delete ads.
 create policy ads_write on public.ads for all to authenticated
   using (public.is_admin()) with check (public.is_admin());
+
+-- ── ad image storage (public bucket; writes locked to the uploader's folder) ──
+insert into storage.buckets (id, name, public)
+values ('ad-images', 'ad-images', true)
+on conflict (id) do nothing;
+
+drop policy if exists ad_images_read on storage.objects;
+create policy ad_images_read on storage.objects for select to public
+  using (bucket_id = 'ad-images');
+
+drop policy if exists ad_images_write on storage.objects;
+create policy ad_images_write on storage.objects for insert to authenticated
+  with check (bucket_id = 'ad-images'
+              and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists ad_images_update on storage.objects;
+create policy ad_images_update on storage.objects for update to authenticated
+  using (bucket_id = 'ad-images'
+         and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists ad_images_delete on storage.objects;
+create policy ad_images_delete on storage.objects for delete to authenticated
+  using (bucket_id = 'ad-images'
+         and (storage.foldername(name))[1] = auth.uid()::text);
