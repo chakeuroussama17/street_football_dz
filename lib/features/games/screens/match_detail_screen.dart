@@ -185,8 +185,7 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
 
   Widget _hostResultSection(AppLocalizations t, MatchGame m) {
     final g = m.game;
-    final eligible = canEnterScore(
-        status: g.status, endTime: g.endTime, now: DateTime.now());
+    final eligible = canEnterScore(g.status);
     if (!eligible && !g.hasScore) {
       return _box(Row(children: [
         const Icon(Icons.schedule_rounded,
@@ -297,11 +296,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
                 style: AppTextStyles.body(AppColors.darkTextPrimary)),
           ]));
         }
-        final eligible = canRate(
-            status: m.game.status,
-            endTime: m.game.endTime,
-            now: DateTime.now(),
-            alreadyRated: false);
+        final eligible =
+            canRate(status: m.game.status, alreadyRated: false);
         if (!eligible) return const SizedBox.shrink();
         return _box(Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,11 +324,7 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
     final stars = ratingAsync.valueOrNull;
     final loaded = ratingAsync.hasValue;
     if (!loaded) return;
-    final eligible = canRate(
-        status: m.game.status,
-        endTime: m.game.endTime,
-        now: DateTime.now(),
-        alreadyRated: stars != null);
+    final eligible = canRate(status: m.game.status, alreadyRated: stars != null);
     if (!eligible) return;
     _ratePromptShown = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {

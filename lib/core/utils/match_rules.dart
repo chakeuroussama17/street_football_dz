@@ -9,27 +9,16 @@
   return (1, 1);
 }
 
-/// The host may enter / edit the score once the game has ended.
-/// (We don't hard-lock at the 3-hour mark, so a late-but-honest score still
-/// counts; the 3 hours is the window in which it's expected.)
-bool canEnterScore({
-  required String status, // matched | completed | ...
-  required DateTime endTime,
-  required DateTime now,
-}) {
-  if (status != 'matched' && status != 'completed') return false;
-  return now.isAfter(endTime);
-}
+/// The host may enter / edit the score once the game is matched (an opponent
+/// was picked). We don't force it to wait for the scheduled end time — handy
+/// for short games and for testing.
+bool canEnterScore(String status) =>
+    status == 'matched' || status == 'completed';
 
-/// The visiting captain may rate the host once the game has ended — regardless
-/// of whether the host entered a score (so a no-show host can still be rated).
-bool canRate({
-  required String status,
-  required DateTime endTime,
-  required DateTime now,
-  required bool alreadyRated,
-}) {
-  if (status == 'cancelled' || status == 'open') return false;
+/// The visiting captain may rate the host once the game is matched and they
+/// haven't rated yet (rating is independent of whether a score was entered, so
+/// a no-show host can still be rated).
+bool canRate({required String status, required bool alreadyRated}) {
   if (alreadyRated) return false;
-  return now.isAfter(endTime);
+  return status == 'matched' || status == 'completed';
 }

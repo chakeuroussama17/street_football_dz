@@ -36,61 +36,26 @@ void main() {
   });
 
   group('canEnterScore (host)', () {
-    final end = DateTime(2030, 1, 1, 21, 30);
-    test('allowed after the game ends', () {
-      expect(
-          canEnterScore(
-              status: 'matched',
-              endTime: end,
-              now: end.add(const Duration(minutes: 5))),
-          isTrue);
-    });
-    test('blocked before the game ends', () {
-      expect(
-          canEnterScore(
-              status: 'matched',
-              endTime: end,
-              now: end.subtract(const Duration(hours: 1))),
-          isFalse);
+    test('allowed once matched', () {
+      expect(canEnterScore('matched'), isTrue);
+      expect(canEnterScore('completed'), isTrue);
     });
     test('blocked for open/cancelled games', () {
-      expect(
-          canEnterScore(
-              status: 'open',
-              endTime: end,
-              now: end.add(const Duration(hours: 1))),
-          isFalse);
+      expect(canEnterScore('open'), isFalse);
+      expect(canEnterScore('cancelled'), isFalse);
     });
   });
 
   group('canRate (visitor)', () {
-    final end = DateTime(2030, 1, 1, 21, 30);
-    test('allowed after end, independent of score', () {
-      expect(
-          canRate(
-              status: 'matched',
-              endTime: end,
-              now: end.add(const Duration(minutes: 1)),
-              alreadyRated: false),
-          isTrue);
+    test('allowed once matched, independent of score', () {
+      expect(canRate(status: 'matched', alreadyRated: false), isTrue);
+      expect(canRate(status: 'completed', alreadyRated: false), isTrue);
     });
     test('blocked if already rated', () {
-      expect(
-          canRate(
-              status: 'completed',
-              endTime: end,
-              now: end.add(const Duration(hours: 4)),
-              alreadyRated: true),
-          isFalse);
+      expect(canRate(status: 'completed', alreadyRated: true), isFalse);
     });
-    test('blocked before end', () {
-      expect(
-          canRate(
-              status: 'matched',
-              endTime: end,
-              now: end.subtract(const Duration(minutes: 1)),
-              alreadyRated: false),
-          isFalse);
+    test('blocked before matched', () {
+      expect(canRate(status: 'open', alreadyRated: false), isFalse);
     });
   });
 
