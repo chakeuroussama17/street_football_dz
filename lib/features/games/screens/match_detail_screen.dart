@@ -77,9 +77,7 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
               _vsHeader(t, m),
               const SizedBox(height: 20),
               _infoTile(Icons.event_rounded, t.whenLabel, df.format(g.kickoff)),
-              _infoTile(Icons.place_rounded, t.whereLabel,
-                  '${Algeria.labelFor(g.city, localeCode)}'
-                  '${(g.fieldAddress ?? '').isNotEmpty ? ' · ${g.fieldAddress}' : ''}'),
+              _whereTile(t, g, localeCode),
               _infoTile(
                   Icons.groups_rounded, t.gameFormat, t.asideLabel(g.format)),
               if ((g.details ?? '').isNotEmpty) ...[
@@ -470,6 +468,46 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen> {
     if (phone == null || phone.isEmpty) return;
     final uri = Uri.parse('tel:$phone');
     if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
+
+  /// Location row: shows the wilaya + address; when the game has map
+  /// coordinates it's tappable and opens the exact spot in the maps app.
+  Widget _whereTile(AppLocalizations t, Game g, String localeCode) {
+    final text = '${Algeria.labelFor(g.city, localeCode)}'
+        '${(g.fieldAddress ?? '').isNotEmpty ? ' · ${g.fieldAddress}' : ''}';
+    final hasCoords = g.lat != null && g.lng != null;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        onTap: hasCoords ? () => _openMaps(g.lat!, g.lng!) : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.place_rounded, size: 18, color: AppColors.green),
+            const SizedBox(width: 10),
+            Text('${t.whereLabel}: ',
+                style: AppTextStyles.label(AppColors.darkTextSecondary)),
+            Expanded(
+              child: Text(text,
+                  style: AppTextStyles.body(AppColors.darkTextPrimary)),
+            ),
+            if (hasCoords) ...[
+              const SizedBox(width: 8),
+              const Icon(Icons.map_rounded, size: 18, color: AppColors.green),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMaps(double lat, double lng) async {
+    final uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _side(String name, String? logo) => Expanded(

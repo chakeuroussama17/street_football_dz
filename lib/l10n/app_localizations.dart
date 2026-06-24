@@ -820,6 +820,54 @@ abstract class AppLocalizations {
   /// **'e.g. Stade de proximité, Bab Ezzouar'**
   String get fieldAddressHint;
 
+  /// No description provided for @pickLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick location on map'**
+  String get pickLocation;
+
+  /// No description provided for @tapToPickLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to set the field location'**
+  String get tapToPickLocation;
+
+  /// No description provided for @useThisLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this location'**
+  String get useThisLocation;
+
+  /// No description provided for @searchPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Search place or address'**
+  String get searchPlace;
+
+  /// No description provided for @movePinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Move the map to place the pin'**
+  String get movePinHint;
+
+  /// No description provided for @locationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location unavailable — enable location and try again'**
+  String get locationPermissionDenied;
+
+  /// No description provided for @openInMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Maps'**
+  String get openInMaps;
+
+  /// No description provided for @changeLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get changeLocation;
+
   /// No description provided for @gameDay.
   ///
   /// In en, this message translates to:

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/algeria.dart';
 import '../../../core/providers/game_providers.dart';
 import '../../../core/providers/session_provider.dart';
@@ -129,9 +130,13 @@ class _Body extends ConsumerWidget {
               _infoTile(Icons.groups_rounded, t.gameFormat,
                   t.asideLabel(g.format)),
               _infoTile(Icons.event_rounded, t.whenLabel, df.format(g.kickoff)),
-              _infoTile(Icons.place_rounded, t.whereLabel,
-                  '${Algeria.labelFor(g.city, localeCode)}'
-                  '${(g.fieldAddress ?? '').isNotEmpty ? ' · ${g.fieldAddress}' : ''}'),
+              _whereTile(
+                t,
+                '${Algeria.labelFor(g.city, localeCode)}'
+                '${(g.fieldAddress ?? '').isNotEmpty ? ' · ${g.fieldAddress}' : ''}',
+                g.lat,
+                g.lng,
+              ),
 
               if ((g.details ?? '').isNotEmpty) ...[
                 const SizedBox(height: 12),
@@ -273,6 +278,45 @@ class _Body extends ConsumerWidget {
           ],
         ),
       );
+
+  /// Location row — tappable when the game has map coordinates, opening the
+  /// exact spot in the maps app so a bidding team can scout it.
+  Widget _whereTile(
+      AppLocalizations t, String value, double? lat, double? lng) {
+    final hasCoords = lat != null && lng != null;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        onTap: hasCoords ? () => _openMaps(lat, lng) : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.place_rounded, size: 18, color: AppColors.green),
+            const SizedBox(width: 10),
+            Text('${t.whereLabel}: ',
+                style: AppTextStyles.label(AppColors.darkTextSecondary)),
+            Expanded(
+              child: Text(value,
+                  style: AppTextStyles.body(AppColors.darkTextPrimary)),
+            ),
+            if (hasCoords) ...[
+              const SizedBox(width: 8),
+              const Icon(Icons.map_rounded, size: 18, color: AppColors.green),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMaps(double lat, double lng) async {
+    final uri = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 }
 
 class _PlaceBidSheet extends StatefulWidget {

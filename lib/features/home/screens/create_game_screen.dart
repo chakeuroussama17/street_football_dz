@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/providers/game_providers.dart';
 import '../../../core/providers/session_provider.dart';
 import '../../../core/providers/team_providers.dart';
@@ -14,6 +15,7 @@ import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_input.dart';
 import '../../../core/widgets/wilaya_dropdown.dart';
 import '../../../l10n/app_localizations.dart';
+import 'location_picker_screen.dart';
 
 class CreateGameScreen extends ConsumerStatefulWidget {
   const CreateGameScreen({super.key});
@@ -23,10 +25,12 @@ class CreateGameScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
-  final _field = TextEditingController();
   final _details = TextEditingController();
   String _format = '5';
   String? _city;
+  String? _address; // reverse-geocoded address from the map picker
+  double? _lat;
+  double? _lng;
   DateTime? _day;
   TimeOfDay? _time;
   int _duration = 90;
@@ -37,9 +41,24 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
 
   @override
   void dispose() {
-    _field.dispose();
     _details.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickLocation() async {
+    final picked = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          initial: _lat != null && _lng != null ? LatLng(_lat!, _lng!) : null,
+        ),
+      ),
+    );
+    if (picked == null) return;
+    setState(() {
+      _address = picked.address;
+      _lat = picked.lat;
+      _lng = picked.lng;
+    });
   }
 
   Future<void> _pickDay() async {
@@ -95,7 +114,7 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
       return;
     }
     if (_city == null ||
-        _field.text.trim().isEmpty ||
+        (_address ?? '').trim().isEmpty ||
         _day == null ||
         _time == null) {
       _snack(t.fieldRequired);
@@ -113,7 +132,9 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
         hostTeamId: teamId,
         format: _format,
         city: _city!,
-        fieldAddress: _field.text.trim(),
+        fieldAddress: _address!.trim(),
+        lat: _lat,
+        lng: _lng,
         kickoff: kickoff,
         durationMinutes: _duration,
         photoUrl: photoUrl,
@@ -185,10 +206,7 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
             onChanged: (v) => setState(() => _city = v),
           ),
           const SizedBox(height: 16),
-          CustomInput(
-              label: t.fieldAddress,
-              hint: t.fieldAddressHint,
-              controller: _field),
+          _locationField(t),
           const SizedBox(height: 16),
 
           Row(
@@ -254,6 +272,57 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Map-backed location field: tap to open the picker, shows the chosen
+  /// address (with a map-pin accent) once set.
+  Widget _locationField(AppLocalizations t) {
+    final hasLocation = (_address ?? '').isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(t.fieldAddress,
+            style: AppTextStyles.label(AppColors.darkTextSecondary)),
+        const SizedBox(height: 6),
+        InkWell(
+          onTap: _pickLocation,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.darkSurface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: hasLocation
+                    ? AppColors.green.withValues(alpha: 0.5)
+                    : AppColors.darkBorder,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(hasLocation ? Icons.place_rounded : Icons.add_location_alt_rounded,
+                    color: hasLocation ? AppColors.green : AppColors.darkTextMuted,
+                    size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    hasLocation ? _address! : t.tapToPickLocation,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: hasLocation
+                            ? AppColors.darkTextPrimary
+                            : AppColors.darkTextMuted),
+                  ),
+                ),
+                Text(hasLocation ? t.changeLocation : '',
+                    style: AppTextStyles.label(AppColors.green)),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

@@ -383,6 +383,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldAddressHint => 'e.g. Stade de proximité, Bab Ezzouar';
 
   @override
+  String get pickLocation => 'Pick location on map';
+
+  @override
+  String get tapToPickLocation => 'Tap to set the field location';
+
+  @override
+  String get useThisLocation => 'Use this location';
+
+  @override
+  String get searchPlace => 'Search place or address';
+
+  @override
+  String get movePinHint => 'Move the map to place the pin';
+
+  @override
+  String get locationPermissionDenied =>
+      'Location unavailable — enable location and try again';
+
+  @override
+  String get openInMaps => 'Open in Maps';
+
+  @override
+  String get changeLocation => 'Change';
+
+  @override
   String get gameDay => 'Day';
 
   @override

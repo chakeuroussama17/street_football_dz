@@ -40,6 +40,8 @@ class Game {
   final String format; // '5' | '7' | '9' | '11'
   final String? city;
   final String? fieldAddress;
+  final double? lat;
+  final double? lng;
   final DateTime kickoff;
   final int durationMinutes;
   final String? photoUrl;
@@ -58,6 +60,8 @@ class Game {
     required this.format,
     this.city,
     this.fieldAddress,
+    this.lat,
+    this.lng,
     required this.kickoff,
     required this.durationMinutes,
     this.photoUrl,
@@ -77,6 +81,8 @@ class Game {
         format: (r['format'] ?? '5') as String,
         city: r['city'] as String?,
         fieldAddress: r['field_address'] as String?,
+        lat: (r['lat'] as num?)?.toDouble(),
+        lng: (r['lng'] as num?)?.toDouble(),
         kickoff: DateTime.parse(r['kickoff'] as String).toLocal(),
         durationMinutes: (r['duration_minutes'] ?? 90) as int,
         photoUrl: r['photo_url'] as String?,
@@ -211,6 +217,8 @@ class GameService {
     required String format,
     required String city,
     required String fieldAddress,
+    double? lat,
+    double? lng,
     required DateTime kickoff,
     int durationMinutes = 90,
     String? photoUrl,
@@ -227,6 +235,8 @@ class GameService {
             'format': format,
             'city': city,
             'field_address': fieldAddress,
+            'lat': lat,
+            'lng': lng,
             'kickoff': kickoff.toUtc().toIso8601String(),
             'duration_minutes': durationMinutes,
             'photo_url': photoUrl,

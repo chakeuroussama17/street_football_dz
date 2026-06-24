@@ -388,6 +388,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get fieldAddressHint => 'ex. Stade de proximité, Bab Ezzouar';
 
   @override
+  String get pickLocation => 'Choisir le lieu sur la carte';
+
+  @override
+  String get tapToPickLocation => 'Touchez pour situer le terrain';
+
+  @override
+  String get useThisLocation => 'Utiliser ce lieu';
+
+  @override
+  String get searchPlace => 'Rechercher un lieu ou une adresse';
+
+  @override
+  String get movePinHint => 'Déplace la carte pour poser le repère';
+
+  @override
+  String get locationPermissionDenied =>
+      'Localisation indisponible — active-la et réessaie';
+
+  @override
+  String get openInMaps => 'Ouvrir dans Maps';
+
+  @override
+  String get changeLocation => 'Modifier';
+
+  @override
   String get gameDay => 'Jour';
 
   @override

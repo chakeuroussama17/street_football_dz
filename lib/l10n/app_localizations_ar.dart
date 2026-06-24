@@ -380,6 +380,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fieldAddressHint => 'مثال: ملعب الجوار، باب الزوار';
 
   @override
+  String get pickLocation => 'حدّد الموقع على الخريطة';
+
+  @override
+  String get tapToPickLocation => 'اضغط لتحديد موقع الملعب';
+
+  @override
+  String get useThisLocation => 'استخدم هذا الموقع';
+
+  @override
+  String get searchPlace => 'ابحث عن مكان أو عنوان';
+
+  @override
+  String get movePinHint => 'حرّك الخريطة لوضع الدبوس';
+
+  @override
+  String get locationPermissionDenied =>
+      'الموقع غير متاح — فعّل خدمة الموقع وحاول مجدداً';
+
+  @override
+  String get openInMaps => 'افتح في الخرائط';
+
+  @override
+  String get changeLocation => 'تغيير';
+
+  @override
   String get gameDay => 'اليوم';
 
   @override
