@@ -321,6 +321,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get leave => 'Quitter';
 
   @override
+  String get yourTeams => 'Tes équipes';
+
+  @override
+  String get joinAnotherTeam => 'Rejoindre une autre équipe';
+
+  @override
+  String get removeMember => 'Retirer';
+
+  @override
+  String removeMemberConfirm(String name) {
+    return 'Retirer $name de l\'équipe ?';
+  }
+
+  @override
+  String get memberRemoved => 'Membre retiré';
+
+  @override
   String get noTeamYet => 'Tu n\'es dans aucune équipe.';
 
   @override

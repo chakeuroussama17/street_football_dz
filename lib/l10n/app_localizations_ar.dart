@@ -315,6 +315,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get leave => 'مغادرة';
 
   @override
+  String get yourTeams => 'فِرَقك';
+
+  @override
+  String get joinAnotherTeam => 'انضم إلى فريق آخر';
+
+  @override
+  String get removeMember => 'إزالة';
+
+  @override
+  String removeMemberConfirm(String name) {
+    return 'إزالة $name من الفريق؟';
+  }
+
+  @override
+  String get memberRemoved => 'تمت إزالة العضو';
+
+  @override
   String get noTeamYet => 'أنت لست في فريق بعد.';
 
   @override

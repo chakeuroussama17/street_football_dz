@@ -114,6 +114,15 @@ class TeamMember {
       this.age});
 }
 
+/// One of the teams a user belongs to, with their role in it.
+class TeamMembership {
+  final Team team;
+  final String role; // 'captain' | 'player'
+  const TeamMembership({required this.team, required this.role});
+
+  bool get isCaptain => role == 'captain';
+}
+
 class TeamService {
   static final _sb = SupabaseService.supabase;
   static const _codeChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no O/0/I/1
@@ -145,10 +154,82 @@ class TeamService {
           })
           .select()
           .single();
-      return Team.fromRow(row);
+      final team = Team.fromRow(row);
+      // The captain is also a roster member.
+      await _sb.from('team_members').upsert(
+        {'team_id': team.id, 'user_id': uid, 'role': 'captain'},
+        onConflict: 'team_id,user_id',
+        ignoreDuplicates: true,
+      );
+      return team;
     } catch (e) {
       throw TeamFailure('Could not create the team — please try again');
     }
+  }
+
+  /// Adds the current user to [teamId] (idempotent) and makes it their active
+  /// team. A user can belong to as many teams as they have codes for.
+  static Future<void> joinTeam(String teamId) async {
+    final uid = _sb.auth.currentUser?.id;
+    if (uid == null) throw TeamFailure('Your session expired — sign in again');
+    final team = await fetchTeam(teamId);
+    final role = team?.captainId == uid ? 'captain' : 'player';
+    try {
+      await _sb.from('team_members').upsert(
+        {'team_id': teamId, 'user_id': uid, 'role': role},
+        onConflict: 'team_id,user_id',
+        ignoreDuplicates: true,
+      );
+      // Switch the active team to the one just joined.
+      await _sb
+          .from('users')
+          .update({'team_id': teamId, 'role': role}).eq('id', uid);
+    } catch (_) {
+      throw TeamFailure('Could not join the team — please try again');
+    }
+  }
+
+  /// Sets which of the user's teams is "active" (acted as for posting/bidding),
+  /// keeping their global role in sync with that team.
+  static Future<void> setActiveTeam(String teamId) async {
+    final uid = _sb.auth.currentUser?.id;
+    if (uid == null) return;
+    final team = await fetchTeam(teamId);
+    final role = team?.captainId == uid ? 'captain' : 'player';
+    await _sb
+        .from('users')
+        .update({'team_id': teamId, 'role': role}).eq('id', uid);
+  }
+
+  /// Captain removes a member from their team (RPC enforces captain-only).
+  static Future<void> removeMember(String teamId, String userId) async {
+    try {
+      await _sb.rpc('remove_team_member',
+          params: {'p_team': teamId, 'p_user': userId});
+    } on PostgrestException catch (e) {
+      throw TeamFailure(e.message);
+    }
+  }
+
+  /// All teams the current user belongs to, with their role in each.
+  static Future<List<TeamMembership>> fetchMyTeams() async {
+    final uid = _sb.auth.currentUser?.id;
+    if (uid == null) return [];
+    final rows = await _sb
+        .from('team_members')
+        .select('role, team:teams(*)')
+        .eq('user_id', uid)
+        .order('joined_at', ascending: true);
+    return (rows as List)
+        .where((r) => (r as Map)['team'] != null)
+        .map((r) {
+          final m = r as Map<String, dynamic>;
+          return TeamMembership(
+            team: Team.fromRow(m['team'] as Map<String, dynamic>),
+            role: (m['role'] ?? 'player') as String,
+          );
+        })
+        .toList();
   }
 
   /// Finds a team by its join code (case-insensitive). Throws if not found.
@@ -211,31 +292,36 @@ class TeamService {
 
   static Future<List<TeamMember>> fetchRoster(String teamId) async {
     final rows = await _sb
-        .from('users')
-        .select('id, full_name, role, avatar_url, date_of_birth')
+        .from('team_members')
+        .select(
+            'role, user:users(id, full_name, avatar_url, date_of_birth)')
         .eq('team_id', teamId);
-    return (rows as List).map((r) {
-      final m = r as Map<String, dynamic>;
-      int? age;
-      if (m['date_of_birth'] != null) {
-        final dob = DateTime.tryParse(m['date_of_birth'] as String);
-        if (dob != null) {
-          final now = DateTime.now();
-          age = now.year - dob.year;
-          if (now.month < dob.month ||
-              (now.month == dob.month && now.day < dob.day)) {
-            age = age - 1;
+    return (rows as List)
+        .where((r) => (r as Map)['user'] != null)
+        .map((r) {
+          final row = r as Map<String, dynamic>;
+          final u = row['user'] as Map<String, dynamic>;
+          int? age;
+          if (u['date_of_birth'] != null) {
+            final dob = DateTime.tryParse(u['date_of_birth'] as String);
+            if (dob != null) {
+              final now = DateTime.now();
+              age = now.year - dob.year;
+              if (now.month < dob.month ||
+                  (now.month == dob.month && now.day < dob.day)) {
+                age = age - 1;
+              }
+            }
           }
-        }
-      }
-      return TeamMember(
-        id: m['id'] as String,
-        fullName: (m['full_name'] ?? '') as String,
-        role: (m['role'] ?? 'player') as String,
-        avatarUrl: m['avatar_url'] as String?,
-        age: age,
-      );
-    }).toList()
+          return TeamMember(
+            id: u['id'] as String,
+            fullName: (u['full_name'] ?? '') as String,
+            role: (row['role'] ?? 'player') as String,
+            avatarUrl: u['avatar_url'] as String?,
+            age: age,
+          );
+        })
+        .toList()
       ..sort((a, b) => a.role == 'captain' ? -1 : (b.role == 'captain' ? 1 : 0));
   }
 
@@ -265,11 +351,34 @@ class TeamService {
     return Team.fromRow(row);
   }
 
-  /// Player leaves their current team (captains cannot leave their own team).
-  static Future<void> leaveTeam() async {
+  /// Player leaves [teamId]. Their active team is repointed to another team
+  /// they're still in, or cleared. (Captains can't leave their own team.)
+  static Future<void> leaveTeam(String teamId) async {
     final uid = _sb.auth.currentUser?.id;
     if (uid == null) return;
-    await _sb.from('users').update({'team_id': null}).eq('id', uid);
+    await _sb
+        .from('team_members')
+        .delete()
+        .eq('team_id', teamId)
+        .eq('user_id', uid);
+    // Repoint the active team if we just left it.
+    final me =
+        await _sb.from('users').select('team_id').eq('id', uid).maybeSingle();
+    if ((me?['team_id'] as String?) == teamId) {
+      final remaining = await _sb
+          .from('team_members')
+          .select('team_id')
+          .eq('user_id', uid)
+          .limit(1);
+      final next = (remaining as List).isEmpty
+          ? null
+          : (remaining.first as Map)['team_id'] as String?;
+      if (next != null) {
+        await setActiveTeam(next);
+      } else {
+        await _sb.from('users').update({'team_id': null}).eq('id', uid);
+      }
+    }
   }
 
   /// Uploads a team logo to the team-logos bucket and returns its public URL.

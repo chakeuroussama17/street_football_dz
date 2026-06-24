@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_providers.dart';
+import '../../../core/providers/team_providers.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/team_service.dart';
 import '../../../core/theme/app_colors.dart';
@@ -48,27 +49,31 @@ class _JoinTeamScreenState extends ConsumerState<JoinTeamScreen> {
     final t = AppLocalizations.of(context);
     final draft = ref.read(onboardingDraftProvider);
     final team = _found;
-    if (draft == null) {
-      context.goNamed('welcome');
-      return;
-    }
     if (team == null) return;
     setState(() => _loading = true);
     try {
-      await AuthService.upsertProfile(
-        fullName: draft.fullName,
-        dateOfBirth: draft.dateOfBirth,
-        city: draft.city,
-        phone: draft.phone,
-        role: 'player',
-        teamId: team.id,
-      );
+      // First-time onboarding: create the profile row before joining.
+      if (draft != null) {
+        await AuthService.upsertProfile(
+          fullName: draft.fullName,
+          dateOfBirth: draft.dateOfBirth,
+          city: draft.city,
+          phone: draft.phone,
+          role: 'player',
+        );
+      }
+      // Add the membership (a player can be in many teams) + make it active.
+      await TeamService.joinTeam(team.id);
       final me = await AuthService.currentAppUser();
       if (!mounted) return;
       applySessionStateW(ref, me);
       ref.read(onboardingDraftProvider.notifier).state = null;
+      ref.invalidate(myTeamProvider);
+      ref.invalidate(myTeamsProvider);
       context.goNamed('home');
     } on AuthFailure catch (e) {
+      _snack(e.message);
+    } on TeamFailure catch (e) {
       _snack(e.message);
     } catch (_) {
       _snack(t.fieldRequired);

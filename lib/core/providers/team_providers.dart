@@ -25,8 +25,14 @@ final rosterProvider =
   (ref, teamId) => TeamService.fetchRoster(teamId),
 );
 
-/// The signed-in user's own team (null until onboarding completes).
+/// The signed-in user's *active* team (null until onboarding completes).
 final myTeamProvider = FutureProvider.autoDispose<Team?>((ref) {
-  ref.watch(myTeamIdProvider); // refetch when the team id changes
+  ref.watch(myTeamIdProvider); // refetch when the active team changes
   return TeamService.fetchMyTeam();
+});
+
+/// Every team the signed-in user belongs to (a player can be in many).
+final myTeamsProvider = FutureProvider.autoDispose<List<TeamMembership>>((ref) {
+  ref.watch(myTeamIdProvider); // refetch after join / leave / switch
+  return TeamService.fetchMyTeams();
 });

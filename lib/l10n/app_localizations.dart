@@ -694,6 +694,36 @@ abstract class AppLocalizations {
   /// **'Leave'**
   String get leave;
 
+  /// No description provided for @yourTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'Your teams'**
+  String get yourTeams;
+
+  /// No description provided for @joinAnotherTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Join another team'**
+  String get joinAnotherTeam;
+
+  /// No description provided for @removeMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeMember;
+
+  /// No description provided for @removeMemberConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from the team?'**
+  String removeMemberConfirm(String name);
+
+  /// No description provided for @memberRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Member removed'**
+  String get memberRemoved;
+
   /// No description provided for @noTeamYet.
   ///
   /// In en, this message translates to:
