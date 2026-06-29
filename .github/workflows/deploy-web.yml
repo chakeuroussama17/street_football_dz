@@ -1,0 +1,75 @@
+name: Deploy Web
+
+# Builds the Flutter web app and publishes it to GitHub Pages on every push to
+# main. After the first successful run, if needed enable Pages:
+#   repo Settings → Pages → Build and deployment → Source: "GitHub Actions".
+# Live site:
+#   https://chakeuroussama17.github.io/street_football_dz/
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.1"
+          channel: stable
+          cache: true
+
+      # .env is gitignored (Supabase key is a public anon key). Recreate it from
+      # repo secrets, falling back to the same defaults as build-apk.yml.
+      - name: Create .env
+        run: |
+          echo "SUPABASE_URL=${SUPABASE_URL:-https://qwjevsuoiiswfhbhrbei.supabase.co}" > .env
+          echo "SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3amV2c3VvaWlzd2ZoYmhyYmVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwODIwMjcsImV4cCI6MjA5NzY1ODAyN30.oC43qTdqA0s2ZsEmXnM4SGs_tSGPk764-V4IJD2M0-w}" >> .env
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Build web
+        run: flutter build web --release --base-href /street_football_dz/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
