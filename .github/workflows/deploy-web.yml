@@ -55,8 +55,10 @@ jobs:
         with:
           enablement: true
 
+      # --no-web-resources-cdn serves CanvasKit from our own origin instead of
+      # gstatic (which is often blocked/throttled in some regions → blank page).
       - name: Build web
-        run: flutter build web --release --base-href /street_football_dz/
+        run: flutter build web --release --base-href /street_football_dz/ --no-web-resources-cdn
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
