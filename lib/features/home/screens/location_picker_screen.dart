@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -19,7 +20,7 @@ class PickedLocation {
 
 /// Grab-style map picker: drag the map under a fixed centre pin; the address is
 /// reverse-geocoded as you move. Tap "Use this location" to return the point.
-/// Uses OpenStreetMap tiles (no API key) and the platform geocoder.
+/// Uses OpenStreetMap tiles + Nominatim geocoding (no API key; works on web).
 class LocationPickerScreen extends StatefulWidget {
   final LatLng? initial;
   const LocationPickerScreen({super.key, this.initial});
@@ -54,15 +55,32 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     super.dispose();
   }
 
-  /// Reverse-geocode [p] into a readable address (debounced by the caller).
+  String _coords(LatLng p) =>
+      '${p.latitude.toStringAsFixed(5)}, ${p.longitude.toStringAsFixed(5)}';
+
+  String get _lang =>
+      mounted ? Localizations.localeOf(context).languageCode : 'ar';
+
+  /// Reverse-geocode [p] into a readable address via OpenStreetMap Nominatim
+  /// (works on web + mobile). Falls back to raw coordinates on any failure.
   Future<void> _resolve(LatLng p) async {
     setState(() => _resolving = true);
-    String label;
+    final lang = _lang;
+    String label = _coords(p);
     try {
-      final marks = await placemarkFromCoordinates(p.latitude, p.longitude);
-      label = marks.isEmpty ? _coords(p) : _format(marks.first, p);
+      final uri = Uri.parse(
+          'https://nominatim.openstreetmap.org/reverse?format=jsonv2'
+          '&lat=${p.latitude}&lon=${p.longitude}&accept-language=$lang');
+      final res = await http
+          .get(uri, headers: {'User-Agent': 'StreetFootballDZ/1.0'})
+          .timeout(const Duration(seconds: 8));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        final name = (data['display_name'] as String?)?.trim();
+        if (name != null && name.isNotEmpty) label = name;
+      }
     } catch (_) {
-      label = _coords(p);
+      // keep coords fallback
     }
     if (!mounted) return;
     setState(() {
@@ -71,43 +89,46 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     });
   }
 
-  String _coords(LatLng p) =>
-      '${p.latitude.toStringAsFixed(5)}, ${p.longitude.toStringAsFixed(5)}';
-
-  String _format(Placemark m, LatLng p) {
-    final parts = <String>[
-      if ((m.name ?? '').isNotEmpty && m.name != m.street) m.name!,
-      if ((m.street ?? '').isNotEmpty) m.street!,
-      if ((m.subLocality ?? '').isNotEmpty) m.subLocality!,
-      if ((m.locality ?? '').isNotEmpty) m.locality!,
-      if ((m.administrativeArea ?? '').isNotEmpty) m.administrativeArea!,
-    ];
-    final seen = <String>{};
-    final unique = parts.where((s) => seen.add(s)).toList();
-    return unique.isEmpty ? _coords(p) : unique.join(', ');
-  }
-
   void _onMove(MapCamera camera, bool hasGesture) {
     _center = camera.center;
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 550), () {
+    _debounce = Timer(const Duration(milliseconds: 650), () {
       if (mounted) _resolve(_center);
     });
   }
 
+  /// Forward-geocode the search box via Nominatim (biased to Algeria).
   Future<void> _searchPlace() async {
     final q = _search.text.trim();
     if (q.isEmpty) return;
     final noResults = AppLocalizations.of(context).noResultsYet;
+    final lang = _lang;
     FocusScope.of(context).unfocus();
     try {
-      final results = await locationFromAddress(q);
-      if (!mounted || results.isEmpty) return;
-      final loc = results.first;
-      final p = LatLng(loc.latitude, loc.longitude);
-      _mapController.move(p, 16);
-      _center = p;
-      _resolve(p);
+      final uri = Uri.parse(
+          'https://nominatim.openstreetmap.org/search?format=jsonv2'
+          '&q=${Uri.encodeQueryComponent(q)}&limit=1&countrycodes=dz'
+          '&accept-language=$lang');
+      final res = await http
+          .get(uri, headers: {'User-Agent': 'StreetFootballDZ/1.0'})
+          .timeout(const Duration(seconds: 8));
+      if (!mounted) return;
+      if (res.statusCode == 200) {
+        final list = jsonDecode(res.body) as List;
+        if (list.isNotEmpty) {
+          final first = list.first as Map<String, dynamic>;
+          final lat = double.tryParse('${first['lat']}');
+          final lon = double.tryParse('${first['lon']}');
+          if (lat != null && lon != null) {
+            final p = LatLng(lat, lon);
+            _mapController.move(p, 16);
+            _center = p;
+            _resolve(p);
+            return;
+          }
+        }
+      }
+      _snack(noResults);
     } catch (_) {
       if (mounted) _snack(noResults);
     }
