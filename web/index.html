@@ -33,26 +33,6 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!-- TEMP diagnostic: surfaces any startup error on-screen (remove later). -->
-  <div id="err" style="position:fixed;inset:0;z-index:99999;background:#0b0b0b;color:#39ff14;font:12px/1.5 monospace;padding:16px;white-space:pre-wrap;overflow:auto;display:none"></div>
-  <script>
-    (function () {
-      var box = document.getElementById('err');
-      function show(m) { box.style.display = 'block'; box.textContent += m + "\n\n"; }
-      window.addEventListener('error', function (e) {
-        show('JS ERROR: ' + (e.message || '') + "\n" + ((e.error && e.error.stack) || ''));
-      });
-      window.addEventListener('unhandledrejection', function (e) {
-        var r = e.reason; show('PROMISE REJECTION: ' + ((r && (r.stack || r.message)) || r));
-      });
-      var ce = console.error;
-      console.error = function () {
-        try { show('CONSOLE: ' + Array.prototype.join.call(arguments, ' ')); } catch (_) {}
-        ce.apply(console, arguments);
-      };
-    })();
-  </script>
-
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

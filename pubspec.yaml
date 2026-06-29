@@ -13,7 +13,10 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  supabase_flutter: ^2.0.0
+  # Pinned: 2.15.0 calls PasskeyAuthenticator.init() at startup, which needs a
+  # web JS dep we don't ship → blank page on web. 2.14.1 has no such call and
+  # matches the working Dreaming Ball build. (We use email/password, not passkeys.)
+  supabase_flutter: 2.14.1
   go_router: ^13.0.0
   flutter_riverpod: ^2.6.0
   google_fonts: ^6.0.0
