@@ -50,6 +50,12 @@ flutter_launcher_icons:
   adaptive_icon_background: "#0A0E0C"
   adaptive_icon_foreground: "assets/images/logo.png"
   min_sdk_android: 21
+  # Web: generates web/favicon.png + web/icons/* from the logo (browser tab).
+  web:
+    generate: true
+    image_path: "assets/images/logo.png"
+    background_color: "#0A0E0C"
+    theme_color: "#0A0E0C"
 
 flutter:
   # Generates the localization classes (AppLocalizations) from the ARB files
